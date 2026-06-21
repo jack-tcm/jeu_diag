@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<script>
+(function(){
+  try{
+    var saved = localStorage.getItem('mtc-game-theme');
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.dataset.theme = saved || (prefersDark ? 'dark' : 'light');
+  }catch(e){
+    document.documentElement.dataset.theme = 'light';
+  }
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>辨證論治 — Le jeu des syndromes MTC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;600;700&family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3ECDC;
+    --paper-deep:#EAE0C8;
+    --paper-line:rgba(43,36,28,0.14);
+    --ink:#2B241C;
+    --ink-soft:#6B5F4D;
+    --seal:#AE2E24;
+    --seal-deep:#7E2019;
+    --jade:#3F6357;
+    --jade-deep:#2C463D;
+    --gold:#B8862B;
+    --wrong:#6B6258;
+    --wrong-bg:#E4DAC4;
+    --radius-lg:20px;
+    --radius-md:14px;
+    --serif:'Noto Serif', 'Noto Serif SC', 'Songti SC', Georgia, serif;
+    --sans:'Noto Sans', 'Noto Sans SC', 'PingFang SC', system-ui, sans-serif;
+  }
+  [data-theme="dark"]{
+    --paper:#1B1712;
+    --paper-deep:#252019;
+    --paper-line:rgba(243,236,220,0.14);
+    --ink:#EFE7D6;
+    --ink-soft:#B5A98F;
+    --seal:#E2574A;
+    --seal-deep:#C2453A;
+    --jade:#7BAF9C;
+    --jade-deep:#5C8E7C;
+    --gold:#D9A949;
+    --wrong:#9A8F7A;
+    --wrong-bg:#352F25;
+  }
+
+  *{box-sizing:border-box;}
+  *, *::before, *::after{transition:background-color .25s ease, border-color .25s ease, color .25s ease;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(184,134,43,0.06), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(174,46,36,0.05), transparent 45%),
+      var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .app{max-width:1080px;margin:0 auto;padding:0 20px 56px;}
+
+  /* ---------- THEME TOGGLE ---------- */
+  .theme-toggle{
+    position:fixed;
+    top:14px;
+    right:18px;
+    z-index:50;
+    width:36px;height:36px;
+    border-radius:50%;
+    border:1px solid var(--paper-line);
+    background:var(--paper-deep);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    opacity:.72;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+  }
+  .theme-toggle:hover{opacity:1;}
+  .theme-toggle:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+  .yinyang{position:relative;width:18px;height:18px;border-radius:50%;border:1px solid var(--ink-soft);
+    background:linear-gradient(to right, var(--paper) 50%, var(--ink) 50%);overflow:hidden;display:block;}
+  .yinyang::before{content:'';position:absolute;top:0;left:4.5px;width:9px;height:9px;border-radius:50%;background:var(--paper);}
+  .yinyang::after{content:'';position:absolute;bottom:0;left:4.5px;width:9px;height:9px;border-radius:50%;background:var(--ink);}
+  .yy-dot-a{position:absolute;top:3px;left:7px;width:3.4px;height:3.4px;border-radius:50%;background:var(--ink);z-index:2;}
+  .yy-dot-b{position:absolute;bottom:3px;left:7px;width:3.4px;height:3.4px;border-radius:50%;background:var(--paper);z-index:2;}
+
+  /* ---------- HEADER ---------- */
+  .app-header{
+    position:relative;
+    overflow:hidden;
+    margin-top:28px;
+    padding:40px 32px 30px;
+    background:var(--paper-deep);
+    border:1px solid var(--paper-line);
+    border-radius:var(--radius-lg);
+  }
+  .header-mark{
+    position:absolute;right:-18px;top:-46px;
+    font-family:var(--serif);font-weight:700;font-size:260px;line-height:1;
+    color:var(--ink);opacity:.045;pointer-events:none;user-select:none;
+    animation:breathe 7s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:.035;}50%{opacity:.085;}}
+  .eyebrow-cn{font-family:var(--sans);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:12.5px;color:var(--seal-deep);}
+  .title{font-family:var(--serif);font-size:clamp(26px,4vw,40px);font-weight:700;margin:10px 0 10px;color:var(--ink);position:relative;z-index:1;}
+  .subtitle{font-family:var(--sans);font-size:14.5px;line-height:1.65;color:var(--ink-soft);max-width:600px;position:relative;z-index:1;}
+  .header-stats{margin-top:22px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;position:relative;z-index:1;}
+  .stat-badge{font-family:var(--sans);font-size:13px;padding:8px 16px;border-radius:999px;background:var(--paper);border:1px solid var(--paper-line);color:var(--ink-soft);}
+  .stat-badge strong{color:var(--ink);font-weight:700;}
+
+  /* ---------- BUTTONS ---------- */
+  .btn{font-family:var(--sans);font-weight:600;font-size:14.5px;padding:11px 22px;border-radius:999px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;}
+  .btn:hover{background:var(--ink);color:var(--paper);}
+  .btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+  .btn-primary{background:var(--seal);border-color:var(--seal-deep);color:#fff;}
+  .btn-primary:hover{background:var(--seal-deep);border-color:var(--seal-deep);color:#fff;}
+  .btn-ghost{background:transparent;border-color:var(--paper-line);color:var(--ink-soft);}
+  .btn-ghost:hover{background:var(--paper-deep);color:var(--ink);}
+
+  #gameRoot{margin-top:26px;}
+
+  /* ---------- LAYOUT ---------- */
+  .app-body{display:grid;grid-template-columns:218px 1fr;gap:26px;align-items:start;}
+
+  /* ---------- STEPS RAIL ---------- */
+  .steps-rail{position:sticky;top:20px;background:var(--paper-deep);border:1px solid var(--paper-line);border-radius:var(--radius-md);padding:10px 16px;}
+  .rail-list{position:relative;list-style:none;margin:0;padding:0;}
+  .rail-list::before{content:'';position:absolute;left:22px;top:24px;bottom:24px;width:2px;background:var(--paper-line);}
+  .rail-item{position:relative;display:flex;align-items:center;gap:13px;padding:11px 0;}
+  .rail-glyph{flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-size:18px;font-weight:600;background:var(--paper);border:2px solid var(--paper-line);
+    color:var(--ink-soft);position:relative;z-index:1;}
+  .rail-item.is-done .rail-glyph{background:var(--jade);border-color:var(--jade-deep);color:#fff;transform:rotate(-7deg);box-shadow:0 2px 7px rgba(63,99,87,.4);}
+  .rail-item.is-current .rail-glyph{border-color:var(--jade);color:var(--jade-deep);box-shadow:0 0 0 4px rgba(63,99,87,.16);transform:scale(1.08);}
+  .rail-label{font-family:var(--sans);font-size:12.5px;line-height:1.3;color:var(--ink-soft);}
+  .rail-item.is-current .rail-label{color:var(--ink);font-weight:700;}
+  .rail-sub{display:block;font-size:11px;color:var(--ink-soft);opacity:.8;}
+
+  /* ---------- CONSULT CARD ---------- */
+  .consult-card{background:var(--paper-deep);border:1px solid var(--paper-line);border-radius:var(--radius-lg);padding:34px 36px;
+    min-height:440px;box-shadow:0 1px 0 rgba(43,36,28,.04), 0 14px 30px -18px rgba(43,36,28,.3);animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+  .q-eyebrow{font-family:var(--sans);font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:10px;}
+  .q-title{font-family:var(--serif);font-size:25px;font-weight:700;color:var(--ink);margin:0 0 6px;line-height:1.35;}
+  .q-hint{font-family:var(--sans);font-size:13.5px;color:var(--ink-soft);margin-bottom:6px;}
+  .symptom-box{font-family:var(--serif);font-size:16.5px;line-height:1.85;color:var(--ink);background:var(--paper);
+    border-left:4px solid var(--seal);padding:22px 26px;border-radius:4px 14px 14px 4px;margin:22px 0 18px;font-style:italic;}
+
+  /* ---------- HINT ---------- */
+  .hint-box{margin:6px 0 18px;}
+  .hint-toggle{font-family:var(--sans);font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;
+    border:1px dashed var(--paper-line);background:transparent;color:var(--gold);cursor:pointer;}
+  .hint-toggle:hover{background:rgba(184,134,43,.08);}
+  .hint-revealed{font-family:var(--sans);font-size:13px;padding:9px 14px;border-radius:10px;background:rgba(184,134,43,.1);
+    border:1px solid rgba(184,134,43,.35);color:var(--ink);display:inline-block;}
+  .hint-revealed strong{color:var(--gold);}
+
+  details.recall{margin:0 0 18px;border:1px dashed var(--paper-line);border-radius:10px;padding:10px 16px;background:rgba(43,36,28,.02);}
+  details.recall summary{cursor:pointer;font-family:var(--sans);font-size:12.5px;color:var(--ink-soft);font-weight:600;}
+  details.recall p{margin:10px 0 2px;font-size:14px;line-height:1.7;color:var(--ink-soft);font-family:var(--serif);}
+
+  .options{display:grid;gap:11px;margin:18px 0 6px;}
+  .opt{text-align:left;font-family:var(--serif);font-size:15.5px;line-height:1.55;padding:14px 18px;border-radius:12px;
+    border:1.5px solid var(--paper-line);background:var(--paper);color:var(--ink);cursor:pointer;}
+  .opt:hover:not(:disabled){border-color:var(--gold);box-shadow:-4px 0 0 var(--gold) inset;}
+  .opt:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+  .opt:disabled{cursor:default;}
+  .opt.is-correct{background:var(--seal);border-color:var(--seal-deep);color:#fff;}
+  .opt.is-wrong{background:var(--wrong-bg);border-color:var(--wrong);color:var(--wrong);text-decoration:line-through;}
+  .opt.is-dim{opacity:.42;}
+
+  .feedback{display:flex;align-items:center;gap:16px;margin:20px 0 8px;padding:14px 18px;border-radius:12px;background:rgba(174,46,36,.07);}
+  .feedback.is-wrong{background:rgba(107,98,88,.09);}
+  .stamp{flex:0 0 auto;width:46px;height:46px;border-radius:50%;background:var(--seal);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-size:19px;font-weight:700;transform:rotate(-8deg);animation:stampIn .4s cubic-bezier(.2,1.7,.4,1);}
+  .stamp.is-wrong{background:transparent;border:2px solid var(--wrong);color:var(--wrong);animation:none;}
+  @keyframes stampIn{from{transform:scale(2.1) rotate(-26deg);opacity:0;}to{transform:scale(1) rotate(-8deg);opacity:1;}}
+  .feedback-text strong{display:block;font-family:var(--sans);font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--seal-deep);margin-bottom:2px;}
+  .feedback.is-wrong .feedback-text strong{color:var(--wrong);}
+  .feedback-text span{font-family:var(--sans);font-size:14px;color:var(--ink);}
+
+  .step-actions{margin-top:22px;display:flex;justify-content:flex-end;}
+
+  /* ---------- SUMMARY ---------- */
+  .summary-eyebrow{font-family:var(--sans);font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .summary-head{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:8px;}
+  .summary-name{font-family:var(--serif);font-size:27px;font-weight:700;color:var(--ink);margin:0 0 4px;}
+  .summary-cn{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink-soft);}
+  .score-pill{font-family:var(--sans);font-weight:700;font-size:14.5px;padding:10px 20px;border-radius:999px;background:var(--ink);color:var(--paper);white-space:nowrap;}
+  .tag-row{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 2px;}
+  .tag{font-family:var(--sans);font-size:12px;font-weight:600;padding:5px 13px;border-radius:999px;border:1px solid var(--paper-line);background:var(--paper);color:var(--ink-soft);}
+  .summary-section{margin-top:20px;}
+  .summary-section h4{font-family:var(--sans);font-size:11.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--gold);font-weight:700;margin:0 0 6px;}
+  .summary-section p{font-family:var(--serif);font-size:15px;line-height:1.75;color:var(--ink);margin:0;}
+  .summary-actions{margin-top:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
+
+  /* ---------- MENU ---------- */
+  .menu-grid{display:grid;gap:26px;}
+  .filter-panel{background:var(--paper-deep);border:1px solid var(--paper-line);border-radius:var(--radius-lg);padding:28px 30px;}
+  .filter-panel h3{font-family:var(--serif);font-size:18px;margin:0 0 4px;}
+  .filter-hint{font-family:var(--sans);font-size:13px;color:var(--ink-soft);margin:0 0 16px;}
+  .filter-options{display:flex;gap:12px;flex-wrap:wrap;}
+  .filter-chip{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:14px;font-weight:600;
+    padding:10px 16px;border-radius:12px;border:1.5px solid var(--paper-line);background:var(--paper);color:var(--ink-soft);
+    cursor:pointer;user-select:none;}
+  .filter-chip input{accent-color:var(--seal);width:16px;height:16px;}
+  .filter-chip.is-active{border-color:var(--seal);color:var(--ink);background:rgba(174,46,36,.06);}
+  .filter-count{margin-top:14px;font-family:var(--sans);font-size:13px;color:var(--ink-soft);}
+  .filter-count strong{color:var(--ink);}
+  .filter-warning{margin-top:8px;font-family:var(--sans);font-size:13px;color:var(--seal-deep);font-weight:600;}
+
+  .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  @media (max-width:760px){.mode-grid{grid-template-columns:1fr;}}
+  .mode-card{background:var(--paper-deep);border:1.5px solid var(--paper-line);border-radius:var(--radius-lg);
+    padding:28px 26px;display:flex;flex-direction:column;gap:10px;cursor:pointer;text-align:left;width:100%;font-family:var(--serif);}
+  .mode-card:hover:not(:disabled){border-color:var(--gold);transform:translateY(-3px);box-shadow:0 14px 26px -16px rgba(43,36,28,.35);}
+  .mode-card:disabled{opacity:.42;cursor:not-allowed;}
+  .mode-card:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+  .mode-glyph{width:52px;height:52px;border-radius:50%;background:var(--seal);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:22px;font-weight:700;}
+  .mode-card h3{font-family:var(--serif);font-size:20px;margin:4px 0 2px;color:var(--ink);}
+  .mode-card p{font-family:var(--sans);font-size:13.5px;line-height:1.6;color:var(--ink-soft);margin:0;}
+  .mode-cta{margin-top:auto;font-family:var(--sans);font-weight:700;font-size:13.5px;color:var(--seal-deep);display:flex;align-items:center;gap:6px;}
+
+  /* ---------- WALL GAME ---------- */
+  .wall-target-pick{background:var(--paper-deep);border:1px solid var(--paper-line);border-radius:var(--radius-lg);padding:32px 34px;animation:fadeIn .35s ease;}
+  .target-options{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px;}
+  @media (max-width:700px){.target-options{grid-template-columns:1fr;}}
+  .target-btn{text-align:left;background:var(--paper);border:1.5px solid var(--paper-line);border-radius:14px;
+    padding:18px 20px;cursor:pointer;font-family:var(--serif);width:100%;}
+  .target-btn:hover{border-color:var(--seal);box-shadow:-4px 0 0 var(--seal) inset;}
+  .target-btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+  .t-label{font-family:var(--sans);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:700;display:block;margin-bottom:6px;}
+  .t-name{font-size:17px;font-weight:700;color:var(--ink);display:block;}
+  .t-cn{font-style:italic;font-size:13px;color:var(--ink-soft);margin-top:2px;}
+
+  .wall-card{background:var(--paper-deep);border:1px solid var(--paper-line);border-radius:var(--radius-lg);padding:30px 32px;animation:fadeIn .35s ease;}
+  .wall-banner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:14px;}
+  .wall-target-name{font-family:var(--serif);font-size:19px;font-weight:700;color:var(--ink);}
+  .wall-target-name span{color:var(--seal-deep);}
+  .lives{display:flex;gap:6px;}
+  .life-dot{width:13px;height:13px;border-radius:50%;background:var(--seal);}
+  .life-dot.is-used{background:transparent;border:1.5px solid var(--paper-line);}
+  .progress-line{font-family:var(--sans);font-size:13px;color:var(--ink-soft);margin-bottom:16px;}
+  .progress-line strong{color:var(--ink);}
+
+  .wall-grid{display:flex;flex-wrap:wrap;gap:10px;padding:20px;border-radius:14px;
+    background:repeating-linear-gradient(rgba(43,36,28,.035) 0 1px, transparent 1px 38px), var(--paper);
+    border:1px solid var(--paper-line);}
+  .wall-chip{font-family:var(--serif);font-size:14.5px;line-height:1.4;padding:10px 16px;border-radius:8px;
+    border:1.5px solid var(--paper-line);background:var(--paper-deep);color:var(--ink);cursor:pointer;max-width:280px;}
+  .wall-chip:hover:not(:disabled){border-color:var(--gold);transform:translateY(-2px);}
+  .wall-chip:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+  .wall-chip:disabled{cursor:default;}
+  .wall-chip.is-found{background:var(--jade);border-color:var(--jade-deep);color:#fff;}
+  .wall-chip.is-wrong{background:var(--wrong-bg);border-color:var(--wrong);color:var(--wrong);text-decoration:line-through;opacity:.75;}
+  .wall-chip.is-missed{border-color:var(--gold);box-shadow:0 0 0 2px rgba(184,134,43,.3) inset;}
+
+  .wall-result-banner{font-family:var(--serif);font-size:20px;font-weight:700;padding:16px 20px;border-radius:12px;margin:22px 0 18px;}
+  .wall-result-banner.is-win{background:rgba(63,99,87,.14);color:var(--jade);}
+  .wall-result-banner.is-lose{background:rgba(174,46,36,.08);color:var(--seal-deep);}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:760px){
+    .app-body{grid-template-columns:1fr;}
+    .steps-rail{position:static;padding:10px 4px;overflow-x:visible;}
+    .rail-list{display:flex;justify-content:space-between;gap:0;}
+    .rail-list::before{left:15px;right:15px;top:18px;bottom:auto;height:2px;width:auto;}
+    .rail-item{flex:1 1 0;min-width:0;flex-direction:column;gap:4px;padding:4px 0;}
+    .rail-glyph{width:30px;height:30px;font-size:13px;}
+    .rail-label{display:none;}
+    .rail-item.is-current .rail-label{display:block;position:absolute;top:48px;left:50%;transform:translateX(-50%);
+      white-space:nowrap;background:var(--paper);padding:2px 8px;border-radius:6px;font-size:10.5px;box-shadow:0 2px 6px rgba(0,0,0,.1);z-index:2;}
+    .consult-card{padding:26px 22px;}
+    .summary-head{flex-direction:column;}
+    .wall-target-pick,.wall-card{padding:24px 20px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .header-mark{animation:none;}
+    .stamp{animation:none;}
+    .consult-card,.wall-target-pick,.wall-card{animation:none;}
+    html{scroll-behavior:auto;}
+    *, *::before, *::after{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Changer de thème jour/nuit">
+  <span class="yinyang" aria-hidden="true">
+    <span class="yy-dot yy-dot-a"></span>
+    <span class="yy-dot yy-dot-b"></span>
+  </span>
+</button>
+
+<div class="app">
+
+  <header class="app-header">
+    <div class="header-mark" aria-hidden="true">脈</div>
+    <div class="eyebrow-cn">辨證論治 · Différenciation des syndromes</div>
+    <h1 class="title">Le jeu des syndromes MTC</h1>
+    <p class="subtitle">Deux façons de réviser les syndromes de MTC : la <strong>Consultation</strong>, où vous remontez pas à pas du <strong>症 signe</strong> au <strong>方 traitement</strong> ; ou <strong>Le mur des symptômes</strong>, où vous triez les symptômes de deux syndromes mélangés. Choisissez vos catégories puis votre jeu ci-dessous.</p>
+    <div class="header-stats" id="headerStats"></div>
+  </header>
+
+  <div id="gameRoot"></div>
+
+
+</div>
+
+<script>
+const DATA = [{"id":0,"niveau":"Syndromes six niveaux","nom":"Tai Yang Canal - Attaque directe de vent","chinois":"tài yáng zhòng fēng 太阳中风","localisation":"Externe","nature":"Froid","etat":"Plénitude","symptomes":"Douleur et raideur de la nuque, céphalée, fièvre légère, crainte légère du vent ou des courants d’air, légère transpiration spontanée, enduit lingual blanc et mince, pouls flottant et modéré.","cles":"Céphalée, crainte du vent, transpiration spontanée, pouls flottant et modéré.","causes":"Attaque de vent-froid externe sur la surface du corps alors que les pores sont ouverts.","idee":"Le vent pervers agresse la couche protectrice. La transpiration indique que le ying et le wei ne sont pas harmonisés.","exemples":"Stade initial de rhume ou grippe légère.","strategie":"Harmoniser yíng wèi, favoriser la sudorification, libérer la surface et chasser le vent.","traitement":"Guì Zhī Tāng"},{"id":1,"niveau":"Syndromes six niveaux","nom":"Tai Yang Canal - Lésion du froid","chinois":"tài yáng shāng hán 太阳伤寒","localisation":"Externe","nature":"Froid","etat":"Plénitude","symptomes":"Douleur et raideur de la nuque, céphalée, fièvre légère, crainte aigüe du froid non améliorée par la chaleur, crainte du froid plus forte que la fièvre, anidrose, dyspnée, douleur du corps plus forte que la céphalée, enduit lingual blanc et fin, pouls flottant et serré ou rapide.","cles":"Crainte aigüe du froid, anidrose (pas de sueur), douleurs corporelles, pouls flottant et serré.","causes":"Attaque sévère de froid externe qui bloque les pores et la circulation du Wei Qi.","idee":"Le froid resserre les pores, empêchant la transpiration et bloquant le Qi du Poumon, ce qui provoque la dyspnée.","exemples":"Grippe forte, syndrome grippal avec courbatures intenses.","strategie":"Libérer la surface par le piquant et le tiède, disperser le froid, diffuser le poumon et équilibrer la dyspnée.","traitement":"Má Huáng Tāng"},{"id":2,"niveau":"Syndromes six niveaux","nom":"Tai Yang Organe - Accumulation d’eau","chinois":"tài yáng xù shuǐ 太阳蓄水","localisation":"Interne","nature":"Froid","etat":"Plénitude","symptomes":"Fièvre et crainte du vent, transpiration, dysphorie avec soif, vomissement immédiatement après avoir bu, difficultés urinaires, distension et plénitude à l’abdomen inférieur, enduit blanc mince ou glissant, pouls flottant ou serré.","cles":"Difficultés urinaires, distension de l'abdomen inférieur, soif avec rejet de l'eau.","causes":"Le pervers non libéré à la surface pénètre dans l'organe Vessie (foyer inférieur).","idee":"La Vessie ne peut plus transformer les liquides, l'eau s'accumule et bloque la circulation normale, provoquant des vomissements si l'on boit.","exemples":"Rétention d'urine, infection urinaire aiguë en début de maladie externe.","strategie":"Transformer le qì et faire s’écouler l’eau.","traitement":"Wǔ Líng Sǎn"},{"id":3,"niveau":"Syndromes six niveaux","nom":"Tai Yang Organe - Rétention de sang","chinois":"tài yáng xù xuè 太阳蓄血","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Perturbation mentale, accès de folie, urines normales, abdomen inférieur noué de façon aigüe avec douleur et rigidité, langue violacée foncée avec taches ecchymotiques, pouls profond et rugueux ou noué.","cles":"Folie ou agitation mentale, douleur abdominale basse rigide, urines normales, langue violacée.","causes":"Le pervers se transforme en chaleur et se lie au sang dans le foyer inférieur.","idee":"Le sang stagnant obstrue les vaisseaux et perturbe l'esprit (Shén). Comme le sang est touché et non les liquides, les urines restent normales.","exemples":"Traumatismes pelviens, endométriose aiguë, syndromes neuropsychiatriques soudains.","strategie":"Activer le sang et chasser la stase.","traitement":"Táo Hé Chéng Qì Tāng"},{"id":4,"niveau":"Syndromes six niveaux","nom":"Shao Yang - Le pivot","chinois":"shào yáng zhéng 少阳症","localisation":"Ni interne ni externe","nature":"Chaud","etat":"Mélange","symptomes":"Alternance irrégulière de froid et de chaleur (2 à 3 fois par jour), oppression et plénitude poitrine/flancs, agitation anxieuse, nausées, vomissements secs, absence d’appétit, bouche amère, gorge sèche, éblouissements, caractère taciturne, pouls en corde.","cles":"Alternance froid/chaleur, bouche amère, pouls en corde.","causes":"Le pervers n'est plus à la surface mais pas encore totalement à l'interne (mi-externe mi-interne).","idee":"La lutte entre le Qi correct et le pervers se situe sur le \"pivot\". La chaleur du Foie/VB provoque l'amertume et les nausées.","exemples":"Paludisme (malaria), cholécystite, états infectieux subaigus.","strategie":"Harmoniser et libérer shào yáng.","traitement":"Xiǎo Chái Hú Tāng"},{"id":5,"niveau":"Syndromes six niveaux","nom":"Yang Ming Canal - Chaleur du canal","chinois":"yáng míng jīng zhèng 阳明经证","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Fièvre élevée, crainte de la chaleur, transpiration profuse, soif extrême (boisson fraîche), agitation anxieuse, teint rouge, respiration rude/bruyante, langue rouge enduit jaune sec, pouls vaste et grand.","cles":"Les 4 Grands : Fièvre, Transpiration, Soif, Pouls vaste.","causes":"La chaleur pervers pénètre profondément et brûle les liquides organiques sans obstruction physique.","idee":"L'excès de chaleur interne agite le corps et l'esprit, forçant les liquides vers l'extérieur (sueur) et asséchant la bouche.","exemples":"Fièvres infectieuses intenses, insolation.","strategie":"Clarifier la chaleur et purger le feu, engendrer des liquides.","traitement":"Bái Hŭ Tāng"},{"id":6,"niveau":"Syndromes six niveaux","nom":"Yang Ming Organe - Chaleur des organes","chinois":"yáng míng fǔ zhèng 阳明腑证","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Fièvre en marée (15h-17h), délire, agitation, constipation, douleur/dureté/plénitude abdominale (refus palpation), transpiration permanente, langue fissurée/épineuse, enduit jaune roussi ou brûlé, pouls profond et plein.","cles":"Constipation, douleur abdominale aggravée à la pression, fièvre en marée, enduit brûlé.","causes":"La chaleur interne se lie aux matières fécales et les assèche, créant une obstruction.","idee":"Le blocage intestinal empêche la descente du Qi, la chaleur s'accumule et monte troubler l'esprit (délire).","exemples":"Occlusion intestinale, constipation opiniâtre avec forte fièvre.","strategie":"Clarifier la chaleur et purger par l’amer et le froid.","traitement":"Dà Chéng Qì Tāng"},{"id":7,"niveau":"Syndromes six niveaux","nom":"Tai Yin - Froid-vide de la Rate","chinois":"tài yīn zhéng 太阴症","localisation":"Interne","nature":"Froid","etat":"Vide","symptomes":"Plénitude abdominale, vomissements, douleur abdominale intermittente (mieux chaleur/pression), absence d’appétit, selles molles, diarrhée, absence de soif, langue pâle, enduit blanc, pouls modéré faible ou lent.","cles":"Diarrhée, douleur abdominale soulagée par la chaleur, pouls faible.","causes":"Affaiblissement du Yang de la Rate et de l'Estomac.","idee":"L'incapacité de la Rate à transformer et transporter les liquides entraîne l'accumulation de froid et l'humidité (diarrhée).","exemples":"Gastro-entérite chronique, syndrome du côlon irritable (type froid).","strategie":"Tiédir le centre et disperser le froid.","traitement":"Lǐ Zhōng Wán"},{"id":8,"niveau":"Syndromes six niveaux","nom":"Shao Yin - Transformation du froid","chinois":"shào yīn hán huà zhèng 少阴寒化证","localisation":"Interne","nature":"Froid","etat":"Vide","symptomes":"Crainte du froid, couché en chien de fusil, somnolence, apathie, teint pâle, refroidissement des membres, urines claires et augmentées, diarrhées (aliments non-digérés), pouls profond ténu et fin.","cles":"Membres glacés, somnolence (apathie), pouls presque imperceptible.","causes":"Effondrement du Yang du Cœur et des Reins.","idee":"La source de chaleur du corps s'éteint. Le métabolisme ralentit au maximum, menaçant la vie.","exemples":"État de choc, collapsus métabolique, hypothermie sévère.","strategie":"Restaurer le yáng et chasser le froid.","traitement":"Sì Nì Tāng"},{"id":9,"niveau":"Syndromes six niveaux","nom":"Shao Yin - Transformation de la chaleur","chinois":"shào yīn rè huà zhèng 少阴热化证","localisation":"Interne","nature":"Chaud","etat":"Vide","symptomes":"Agitation, insomnie, palpitations, bouche/gorge sèches, soif insatiable, gorge douloureuse ou ulcérée, urines rouges, langue rouge foncé brillante sans enduit, pouls fin et rapide.","cles":"Insomnie, langue rouge sans enduit, pouls fin et rapide.","causes":"Épuisement du Yin (Rein/Cœur) entraînant une chaleur vide.","idee":"Le manque d'eau (Yin) ne permet plus de contrôler le feu, qui monte agiter le cœur et assécher les muqueuses.","exemples":"Maladies chroniques épuisantes, burn-out avec agitation extrême, insomnie sévère.","strategie":"Nourrir le yīn et clarifier la chaleur.","traitement":"Huáng Lián Ē Jiāo Tāng"},{"id":10,"niveau":"Syndromes six niveaux","nom":"Jue Yin - Stade critique","chinois":"jué yīn zhéng 厥阴症","localisation":"Interne","nature":"Mélange","etat":"Vide","symptomes":"Polydipsie, reflux de qì vers le haut, douleur/chaleur au cœur, faim sans envie de manger, vomissements, diarrhée sans fin, membres froids, alternance de froid et de chaleur.","cles":"Membres froids, alternance thermique, faim sans appétit.","causes":"Épuisement du Qi régulier et déséquilibre total entre le Yin et le Yang.","idee":"Dernier stade de la maladie. Le corps perd sa boussole thermique et digestive, marquant un pronostic très grave.","exemples":"Pathologies parasitaires graves, phases terminales de maladies organiques.","strategie":"Tiédir et clarifier simultanément.","traitement":"Wū Méi Wán"},{"id":11,"niveau":"Syndromes des quatre couches","nom":"Syndrome de la couche Wèi (Défense)","chinois":"wèi fèn zhèng 卫分证","localisation":"Externe","nature":"Chaud","etat":"Plénitude","symptomes":"Céphalée importante, douleur du corps peu importante, fièvre élevée, crainte légère du vent et du froid (fièvre prédomine), légère transpiration ou absence de transpiration, bouche sèche, soif légère, toux, douleur et enflure de la gorge, pointe et bords de la langue rouges, enduit blanc et mince.","cles":"Fièvre prédominant sur la crainte du froid, gorge enflée, pouls flottant et rapide.","causes":"Attaque d’un pervers de type chaleur par la bouche et le nez.","idee":"Stade initial superficiel (Biao) touchant la peau, les muscles et la fonction de défense du Poumon. Le dysfonctionnement du Wèi Qì empêche la régularisation de la chaleur.","exemples":"Rhume, grippe, infections ORL débutantes.","strategie":"Libérer la surface par le piquant et le frais, disperser le vent chaleur, diffuser le poumon et faire descendre le qì.","traitement":"Yín Qiào Sǎn ou Sāng Jú Yĭn"},{"id":12,"niveau":"Syndromes des quatre couches","nom":"Qì - Encombrement de la chaleur dans le poumon","chinois":"rè yōng yú fèi 热壅于肺","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Toux et dyspnée, expectorations jaunes et épaisses, douleur à la poitrine, battements des ailes du nez, transpiration, pouls glissant et rapide.","cles":"Toux dyspnéique avec expectorations jaunes, battements des ailes du nez.","causes":"Pénétration de la chaleur pervers dans le poumon.","idee":"La lutte intense entre le Qì correct et le pervers dans le poumon obstrue la diffusion, provoquant des glaires épaisses et une gêne respiratoire.","exemples":"Pneumonie, bronchite aiguë fébrile.","strategie":"Clarifier le poumon et purger la chaleur, diffuser le poumon et équilibrer la dyspnée.","traitement":"Má Xìng Shí Gān Tāng"},{"id":13,"niveau":"Syndromes des quatre couches","nom":"Qì - Surpression de chaleur dans la poitrine et le diaphragme","chinois":"rè yù xiōng gé 热郁胸膈","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Agitation anxieuse, sensation de brûlure à la poitrine et au diaphragme, sursaut au moindre bruit, ne peut rester tranquille, pouls glissant et rapide.","cles":"Sensation de brûlure thoracique, agitation mentale extrême.","causes":"Chaleur stagnante dans le foyer supérieur et le diaphragme.","idee":"La chaleur \"emprisonnée\" dans la poitrine perturbe le calme du Cœur et crée une sensation d'oppression brûlante.","exemples":"États de stress aigu fébrile, œsophagite.","strategie":"Clarifier le diaphragme et purger la chaleur.","traitement":"Zhī Zǐ Chǐ Tāng ou Liáng Gé Sǎn"},{"id":14,"niveau":"Syndromes des quatre couches","nom":"Qì - Chaleur exubérante et ardente dans l’estomac","chinois":"wèi huǒ chì shèng 胃火炽盛","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Fièvre élevée, transpiration profuse, soif intense avec agitation, envie de boissons froides, teint rouge, langue rouge avec enduit jaune sec, pouls vaste et grand.","cles":"Les 4 Grands : Fièvre, Transpiration, Soif, Pouls vaste.","causes":"Le feu de l'Estomac brûle intensément les liquides organiques.","idee":"La chaleur interne est à son apogée et force les liquides vers l'extérieur (sueur) tout en asséchant la bouche.","exemples":"Insolation grave, fièvres infectieuses de type Yang Ming.","strategie":"Clarifier la chaleur et engendrer les liquides.","traitement":"Bái Hŭ Tāng"},{"id":15,"niveau":"Syndromes des quatre couches","nom":"Qì - Nouure de chaleur dans les intestins","chinois":"rè jié cháng 热结肠","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Fièvre en marée (15h-17h), soif, délire, agitation, constipation ou diarrhées liquidiennes fétides, douleur/dureté abdominale (refus palpation), langue fissurée ou épineuse, enduit brûlé, pouls profond et plein.","cles":"Constipation, douleur abdominale rigide, fièvre cyclique de l'après-midi.","causes":"La chaleur se lie aux matières fécales et assèche les liquides intestinaux.","idee":"L'obstruction physique des intestins empêche la descente du Qì, la chaleur reflue vers le haut et trouble l'esprit (délire).","exemples":"Occlusion intestinale, typhoïde, constipation avec forte fièvre.","strategie":"Clarifier la chaleur et purger par l’amer et le froid.","traitement":"Dà Chéng Qì Tāng"},{"id":16,"niveau":"Syndromes des quatre couches","nom":"Qì - Surpression de chaleur dans le foie et la vésicule biliaire","chinois":"rè yù gān dǎn 热郁肝胆","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Alternance de froid et de chaleur, oppression thoracique, vomissements secs, bouche amère, douleur à la région thoracique latérale, urines jaunes et troubles, pouls en corde et rapide.","cles":"Alternance thermique, bouche amère, pouls en corde.","causes":"Chaleur bloquée dans le système charnière (Shao Yang) du Foie et de la Vésicule Biliaire.","idee":"Le pervers lutte sur le pivot mi-externe mi-interne, perturbant la libre circulation du Qì du Foie.","exemples":"Hépatite, cholécystite.","strategie":"Harmoniser et libérer shào yáng.","traitement":"Xiǎo Chái Hú Tāng"},{"id":17,"niveau":"Syndromes des quatre couches","nom":"Couche Yíng - Blessure du yíng et du yīn par la chaleur","chinois":"rè shāng yíng yīn 热伤营阴","localisation":"Interne","nature":"Chaud","etat":"Mélange","symptomes":"Fièvre aggravée la nuit, bouche sèche sans soif excessive, langue rouge foncé, macules et papules indistinctes, insomnie, délire verbal, pouls fin et rapide.","cles":"Fièvre nocturne, langue rouge foncé, soif modérée malgré la sécheresse.","causes":"La chaleur pénètre la couche nourricière (Yíng) et lèse la matière Yin.","idee":"Le pervers atteint le sang profond et le Shen (Esprit), ce qui explique l'agitation nocturne et la couleur sombre de la langue.","exemples":"Encéphalite, stades avancés d'infections sévères.","strategie":"Clarifier la couche yíng et drainer la chaleur.","traitement":"Qīng Yíng Tāng"},{"id":18,"niveau":"Syndromes des quatre couches","nom":"Yíng - Obstruction de chaleur dans l’enveloppe du cœur","chinois":"rè bì xīn bào 热闭心包","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Fièvre élevée, délire verbal, confusion, aphasie, coma, raideur de la langue, refroidissement des membres, pouls fin et rapide, langue rouge foncé.","cles":"Coma, aphasie, raideur de la langue, membres froids.","causes":"La chaleur obstrue les orifices du Cœur (Péricarde).","idee":"L'esprit est totalement embrumé par la chaleur. Le refroidissement des membres indique que la chaleur est bloquée à l'interne et ne circule plus.","exemples":"Méningite, coma fébrile.","strategie":"Clarifier le cœur et ouvrir les orifices.","traitement":"Qīng Gōng Tāng"},{"id":19,"niveau":"Syndromes des quatre couches","nom":"Couche Xuè - Hémorragie par chaleur du sang","chinois":"xuè rè wàng xíng 血热妄行","localisation":"Interne","nature":"Chaud","etat":"Critique","symptomes":"Fièvre aggravée la nuit, agitation maniaque, macules/papules noirâtres ou violacées, hémorragies (nez / vomi / urines), langue violacée sans enduit, pouls rapide.","cles":"Hémorragies diverses, macules sombres, langue violacée.","causes":"Chaleur extrême du sang forçant ce dernier hors des vaisseaux.","idee":"C'est le stade le plus profond. Le sang est agité par le feu et s'échappe, tandis que le Yin profond est gravement lésé.","exemples":"Choc hémorragique fébrile, purpura fulminans.","strategie":"Rafraîchir le sang et disperser la stase.","traitement":"Xī Jiǎo Dì Huáng Tāng"},{"id":20,"niveau":"Syndromes des quatre couches","nom":"Xuè - Agitation du vent par la chaleur du sang","chinois":"xuè rè dòng fēng 血热动风","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Fièvre élevée, convulsions, spasmes, raideur de la nuque, révulsion des yeux, trismus, opisthotonos, langue rouge foncé, pouls fin et rapide.","cles":"Seuils convulsifs, opisthotonos (arc), trismus.","causes":"Chaleur extrême du sang qui \"brûle\" les tendons et engendre le vent.","idee":"Le vent interne de type plénitude provoque des contractions musculaires incontrôlables et une perte de conscience.","exemples":"Tétanos, convulsions hyperpyrexiques.","strategie":"Clarifier la chaleur et éteindre le vent.","traitement":"Tiān Má Gōu Téng Yǐn"},{"id":21,"niveau":"Syndromes des quatre couches","nom":"Xuè - Agitation du vent par vide de yīn","chinois":"yīn xū dòng fēng 阴虚动风","localisation":"Interne","nature":"Chaud (Vide)","etat":"Vide","symptomes":"Rougeur flottant sur le visage, abattement, convulsions cloniques (légères), palpitations, langue rouge foncé peu liquide, pouls fin et rapide.","cles":"Asthénie psychique, convulsions légères/tremblements, rougeur pommettes.","causes":"Vide profond de Yin ne pouvant plus ancrer le Yang (vent vide).","idee":"C'est un stade de fin de maladie où l'épuisement des liquides ne nourrit plus les tendons, créant un vent par manque de substance.","exemples":"Séquelles neurologiques, épuisement terminal d'une maladie fébrile.","strategie":"Nourrir le yīn et éteindre le vent.","traitement":"Dà Dìng Fēng Zhū"},{"id":22,"niveau":"Syndromes du trois foyers","nom":"Foyer supérieur - Atteinte du poumon par la tiédeur perverse","chinois":"wēn xié fàn fèi 温邪犯肺","localisation":"Externe","nature":"Chaud","etat":"Plénitude","symptomes":"Fièvre légère, crainte légère du vent et du froid, aggravation de la fièvre l’après-midi, céphalée, toux, anidrose ou peu de sueur, soif ou absence de soif, enduit lingual blanc et mince, pouls flottant et rapide.","cles":"Fièvre légère, crainte du vent, toux, pouls flottant et rapide.","causes":"Attaque initiale d'un pervers tiédeur par la bouche et le nez.","idee":"C'est le stade initial où le pervers attaque la surface et entrave la diffusion du Poumon. La fièvre prédomine sur le froid car le pervers est de nature chaleur.","exemples":"Rhume, grippe, stade précoce des maladies fébriles.","strategie":"Libérer la surface par le piquant et le frais, disperser le vent chaleur, diffuser le poumon et faire descendre le qì.","traitement":"Yín Qiào Sǎn ou Sāng Jú Yĭn"},{"id":23,"niveau":"Syndromes du trois foyers","nom":"Foyer supérieur - Transmission anormale à l’enveloppe du cœur","chinois":"nì chuán xīn bāo 逆传心包","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Délire, perte de conscience, coma, raideur et rétraction de la langue, refroidissement des membres, agitation anxieuse et soif, insomnie, pouls fin et rapide, langue rouge foncé.","cles":"Coma, délire, langue rouge foncé, membres froids.","causes":"Le pervers chaleur ne suit pas le cycle normal et frappe directement le Cœur.","idee":"La chaleur \"brûle\" l'enveloppe du Cœur, perturbant gravement l'Esprit (Shén). Le froid des membres indique que la chaleur est bloquée à l'interne et ne diffuse plus.","exemples":"Méningite, encéphalite, coma fébrile grave.","strategie":"Clarifier le cœur et ouvrir les orifices.","traitement":"Qīng Gōng Tāng"},{"id":24,"niveau":"Syndromes du trois foyers","nom":"Foyer moyen - Nouure de chaleur dans le yáng míng","chinois":"rè jié yáng míng 热结阳明","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Fièvre élevée, aggravation l’après-midi, pas de crainte du froid, crainte de la chaleur, transpiration abondante, grande soif (boit beaucoup), teint et yeux rouges, respiration rude, plénitude/douleur abdominale (refus palpation), constipation, urines rouges, pouls vaste et grand, langue rouge avec enduit sec jaune/noir épineux.","cles":"Fièvre élevée, constipation, douleur abdominale, pouls vaste, enduit brûlé.","causes":"La chaleur se lie aux matières fécales et assèche les liquides dans l'Estomac et les Intestins.","idee":"La chaleur interne est à son paroxysme. L'obstruction physique des intestins empêche le Qì de descendre, ce qui aggrave la fièvre et la douleur.","exemples":"Occlusion intestinale, constipation opiniâtre fébrile.","strategie":"Clarifier la chaleur et purger, purger la chaleur par l’amer et le froid.","traitement":"Bái Hŭ Tāng ou Dà Chéng Qì Tāng"},{"id":25,"niveau":"Syndromes du trois foyers","nom":"Foyer moyen - Humidité chaleur dans le foyer central","chinois":"zhōng jiāo shī rè 中焦湿热","localisation":"Interne","nature":"Humidité-Chaleur","etat":"Plénitude","symptomes":"Fièvre modérée latente aggravée l’après-midi, oppression et plénitude du thorax et de l'épigastre, tête lourde (enveloppée), corps lourd, fatigue, nausées, vomissements, goût fade/pâteux, inappétence, selles difficiles et pâteuses, urines rares et rouges, troubles mentaux, pouls mou et modéré, langue légèrement rouge avec enduit saburral blanc/jaune.","cles":"Lourdeur, oppression épigastrique, fièvre latente, enduit lingual gras.","causes":"L'humidité et la chaleur stagnent dans la Rate et l'Estomac.","idee":"L'humidité bloque les mouvements du Qì, ce qui explique l'oppression et la lourdeur. La chaleur est \"étouffée\" par l'humidité, d'où le caractère latent de la fièvre.","exemples":"Gastrite, troubles digestifs avec humidité, fatigue chronique.","strategie":"Clarifier la chaleur et transformer l’humidité, harmoniser le centre et libérer la surface.","traitement":"Huò Pò Xià Líng Tāng"},{"id":26,"niveau":"Syndromes du trois foyers","nom":"Foyer inférieur - Lésion du yīn des reins","chinois":"shèn yīn shòu shāng 肾阴受伤","localisation":"Interne","nature":"Chaud (Vide)","etat":"Vide","symptomes":"Fièvre ou chaleur du corps, chaleur aux paumes/plantes, teint rouge, agitation, inquiétude, insomnie, surdité, douleur/sécheresse de la gorge et bouche, lèvres fissurées, langue rouge foncé sèche sans enduit, pouls fin rapide et vide.","cles":"Langue rouge foncé sèche, chaleur des 5 centres, pouls fin et vide.","causes":"Consommation prolongée du Yīn par la chaleur persistante.","idee":"C'est un stade avancé où la matière (Yin) est épuisée. Le feu vide monte car l'eau des reins ne peut plus le contrôler.","exemples":"Maladies chroniques épuisantes, convalescence de maladies graves.","strategie":"Assister le régulier et chasser le pervers, nourrir le yīn et faire descendre le feu.","traitement":"Jiā Jiǎn Fù Mài Tāng ou Huáng Lián Ē Jiāo Tāng"},{"id":27,"niveau":"Syndromes du trois foyers","nom":"Foyer inférieur - Agitation du vent par vide de yīn","chinois":"yīn xū dòng fēng 阴虚动风","localisation":"Interne","nature":"Chaud (Vide)","etat":"Vide","symptomes":"Fièvre élevée, fatigue mentale, refroidissement des membres, mouvements carphologiques (mains/pieds), convulsions cloniques, crampes, spasmes, palpitations violentes, langue rouge foncé sans enduit, pouls en corde fin et rapide.","cles":"Convulsions, tremblements, fatigue mentale extrême, langue rouge foncé.","causes":"Le vide de Yīn est tel qu'il ne peut plus ancrer le Yáng, créant un vent interne.","idee":"Le manque de nutrition des tendons (par vide de liquide/Yin) provoque des mouvements involontaires. C'est un signe de gravité extrême.","exemples":"Séquelles neurologiques graves, états convulsifs terminaux.","strategie":"Nourrir le yīn et éteindre le vent.","traitement":"Dà Dìng Fēng Zhū"},{"id":28,"niveau":"Syndromes du trois foyers","nom":"Foyer supérieur - Syndrome d'humidité chaleur initial","chinois":"shàng jiāo shī rè 上焦湿热","localisation":"Externe","nature":"Humidité","etat":"Plénitude","symptomes":"Forte crainte du froid, légère fièvre (ou fièvre l’après-midi), tête lourde (enveloppée), corps/membres lourds, anidrose, oppression thoracique et épigastrique, inappétence, bouche pâteuse sans soif, apathie, borborygmes, selles molles/pâteuses, enduit blanc et gras, pouls mou et modéré.","cles":"Lourdeur, aversion au froid, absence de soif, enduit blanc gras.","causes":"Attaque initiale d'humidité-chaleur où l'humidité prédomine.","idee":"L'humidité pervers bloque la surface et le Poumon. Comme l'humidité est un pervers Yīn, la crainte du froid est marquée au début.","exemples":"Grippe de type humidité, rhume avec lourdeur extrême.","strategie":"Tiédir et disperser l’humidité de la surface et l’interne, diffuser le poumon et transformer l’humidité chaleur.","traitement":"Huò xiāng zhèng qì sàn ou Huò Pò Xià Líng Tāng"},{"id":29,"niveau":"Syndromes du trois foyers","nom":"Foyer moyen - Humidité chaleur prédominante au centre","chinois":"zhōng jiāo shī rè 中焦湿热","localisation":"Interne","nature":"Humidité-Chaleur","etat":"Plénitude","symptomes":"Fièvre latente ou fluctuante, corps/membres lourds, distension abdominale, oppression poitrine, vomissements, nausées, inappétence, soif sans désir de boire beaucoup, teint fané ou yeux jaune clair, urines rouges, selles molles/pâteuses, possible coma (cas graves), langue rouge avec enduit grisâtre/jaunâtre, pouls mou et rapide.","cles":"Teint jaune, distension abdominale, selles pâteuses, pouls mou.","causes":"Lutte prolongée entre l'humidité et la chaleur dans le foyer moyen.","idee":"L'humidité entrave le transport de la Rate, provoquant la stagnation alimentaire et biliaire (jaunisse). La chaleur trouble parfois l'esprit dans les cas graves.","exemples":"Hépatite, cholécystite, gastro-entérite infectieuse.","strategie":"Clarifier et transformer l’humidité chaleur.","traitement":"Sān Rén Tāng ou Gān Lù Xiāo Dú Dān ou Huò Pò Xià Líng Tāng"},{"id":30,"niveau":"Syndromes du trois foyers","nom":"Foyer inférieur - Humidité chaleur descendante","chinois":"xià jiāo shī rè 下焦湿热","localisation":"Interne","nature":"Humidité-Chaleur","etat":"Plénitude","symptomes":"Dysurie, urines rares et rouges, rétention d’urines, soif sans boire beaucoup, constipation ou selles obstruées, rigidité/plénitude abdomen inférieur, selles molles diarrhéiques difficiles, vertiges, léthargie, langue rouge avec enduit grisâtre/jaune/blanc saburral, pouls mou et rapide.","cles":"Dysurie, rigidité du bas-ventre, selles difficiles.","causes":"L'humidité-chaleur s'écoule et s'accumule dans le foyer inférieur (Vessie/Intestins).","idee":"L'accumulation bloque les fonctions d'élimination des urines et des selles, créant une tension douloureuse dans le bas-ventre.","exemples":"Cystite, prostatite, infections intestinales basses.","strategie":"Faire descendre le trouble et conduire la stagnation.","traitement":"Fú Líng Pí Tāng"},{"id":31,"niveau":"Syndromes du qì","nom":"Syndrome de vide de qì","chinois":"qì xū zhèng 气虚证","localisation":"Interne","nature":"Neutre","etat":"Vide","symptomes":"Fatigue, manque de force, souffle court, pas envie de parler, voix basse, lassitude, épuisement mental, vertiges, étourdissements, inappétence, susceptibilité à prendre froid, transpirations spontanées, symptômes aggravés à l’effort, langue pâle, teint pâle, pouls vide ou fin sans force.","cles":"Fatigue, souffle court, voix basse, langue pâle, pouls vide.","causes":"Constitution faible, surmenage (physique, intellectuel, sexuel, émotionnel), alimentation déséquilibrée, manque de sommeil, maladie chronique ou grave, âge.","idee":"L’hypofonctionnement des organes entraîne une baisse de la vitalité générale, surtout du Poumon (gère le qì) et de la Rate (produit le qì). Le sang circule mal et ne nourrit plus le cerveau (vertiges) ni le corps (pâleur).","exemples":"Maladies chroniques, convalescence, personnes âgées ou surmenées.","strategie":"Tonifier le qì","traitement":"Sì Jūn Zǐ Tāng"},{"id":32,"niveau":"Syndromes du qì","nom":"Syndrome d’affaissement du qì","chinois":"qì xiàn zhèng 气陷证","localisation":"Interne","nature":"Neutre","etat":"Vide","symptomes":"Fatigue prononcée, manque de force, souffle court, pas envie de parler, transpirations spontanées, langue pâle, asthénie, fatigue mentale, diarrhée de longue durée, envie fréquente d’aller à la selle, sensation de distension et de pesanteur à l’abdomen, prolapsus (utérus / rectum / estomac / reins), pouls vide et fin sans force.","cles":"Sensation de pesanteur abdominale, diarrhée chronique, prolapsus d'organes.","causes":"Aggravation du vide de qì, surmenage malgré l'épuisement, maladies de longue durée.","idee":"Le qì est si vide qu'il ne peut plus maintenir les tissus à leur place (fonction de fixation atteinte). La Rate ne parvient plus à assurer sa fonction de montée.","exemples":"Ptose d’organes, entérite chronique, myasthénie, hypotension artérielle.","strategie":"Tonifier le centre et augmenter le qì, faire monter le yáng et soulever l’affaissement","traitement":"Bǔ Zhōng Yī Qì Tāng"},{"id":33,"niveau":"Syndromes du qì","nom":"Syndrome du qì pas affermi","chinois":"qì bú gù zhèng 气不固证","localisation":"Interne","nature":"Neutre","etat":"Vide","symptomes":"Transpirations spontanées, sialorrhée, ménorragie, métrorragie, spermatorrhée, éjaculation précoce, énurésie, goutte à goutte après la miction, incontinence urinaire ou fécale, avortement spontané, fausse couche.","cles":"Échappement incontrôlé des liquides ou substances vitales (sueur / sang / sperme / urines / selles).","causes":"Identiques au vide de qì mais à un degré de gravité plus élevé.","idee":"Le qì ne parvient plus à contenir les substances vitales (liquides, sang, jīng) ni à contrôler les selles et les urines. La membrane originelle (utérus) n'est plus maintenue.","exemples":"Incontinence, ménorragies chroniques, fausses couches à répétition.","strategie":"Tonifier le qì et affermir l’échappement","traitement":"Yù Píng Fēng Sǎn ou Jīn Suǒ Gù Jīng Wán ou Zhēn Rén Yǎng Zàng Tāng"},{"id":34,"niveau":"Syndromes du qì","nom":"Syndrome d’échappement du qì","chinois":"qì tuō zhèng 气脱证","localisation":"Interne","nature":"Froid","etat":"Vide","symptomes":"Respiration faible et irrégulière, bouche ouverte, yeux clos, mains relâchées, corps flasque, perte de connaissance ou coma, transpirations froides spontanées et incessantes, incontinence des selles et des urines, teint blanc/gris pâle, langue pâle, pouls ténu.","cles":"Transpirations froides incessantes, corps flasque, pouls ténu, perte de connaissance.","causes":"Surmenages extrêmes, hémorragies massives, dénutrition, déshydratation, maladies graves, pertes incessantes de liquides.","idee":"Le vide de qì est à son apogée et le qì s'échappe du corps. Le corps n'a plus aucune tonicité et le Cœur/Shén ne sont plus alimentés.","exemples":"Stades critiques des maladies, épuisement extrême juste avant la mort.","strategie":"Augmenter le qì et ouvrir les orifices","traitement":"Dú Shēn Tāng"},{"id":35,"niveau":"Syndromes du qì","nom":"Syndrome de stagnation de qì","chinois":"qì zhì zhèng 气滞证","localisation":"Interne","nature":"Neutre","etat":"Plénitude","symptomes":"Douleur de distension localisée (poitrine / hypochondres / abdomen / articulations / tête), douleur s’améliorant et s’aggravant, distension plus forte que la douleur, soupirs fréquents, borborygmes, symptômes fluctuant avec l’état émotionnel, pouls en corde.","cles":"Douleur de distension mobile, soupirs, lien avec l'état émotionnel, pouls en corde.","causes":"Émotions, alimentation inappropriée, facteurs pathogènes externes, traumatismes, obstructions (humidité, mucosités, stases, calculs).","idee":"La fonction de mobilisation du qì est entravée, provoquant une stagnation locale. Le Poumon et la Rate tentent de relancer le mouvement par les soupirs et borborygmes.","exemples":"Névrose, gastrite chronique, cholécystite, hépatite chronique.","strategie":"Mettre en ordre le qì","traitement":"Chái Hú Shū Gān Sǎn ou Yùe Jū Wán"},{"id":36,"niveau":"Syndromes du qì","nom":"Syndrome par occlusion du qì","chinois":"qì bì zhèng 气闭证","localisation":"Interne","nature":"Neutre","etat":"Plénitude","symptomes":"Soudaine perte de conscience, syncope, soudaine douleur en torsion, blocage des selles et des urines, renversement froid des membres, enduit épais, pouls profond et plein avec force.","cles":"Syncope soudaine, douleur en torsion, blocage des orifices, pouls plein.","causes":"Grande colère, choc émotionnel violent, anxiété extrême, stases de sang, calculs, ascaris, mucosités troubles.","idee":"Des facteurs pathogènes obstruent brutalement les organes internes et les orifices. Le Yang qì est bloqué et ne peut plus réchauffer les extrémités.","exemples":"Urgences médicales, syncope nerveuse, douleurs spasmodiques aiguës.","strategie":"Mettre en ordre le qì","traitement":"Chái Hú Shū Gān Sǎn ou Yùe Jū Wán"},{"id":37,"niveau":"Syndromes du qì","nom":"Syndrome d’inversion du qì","chinois":"qì nì zhèng 气逆证","localisation":"Interne","nature":"Neutre","etat":"Mélange","symptomes":"Toux, asthme, respiration sifflante, nausées, vomissements, éructations, régurgitations acides, hoquet, céphalées, vertiges, acouphènes, soupirs, perte soudaine de la conscience, expectorations de sang.","cles":"Qì circulant en sens inverse ou de manière excessive dans son sens naturel.","causes":"Tout ce qui entrave le mouvement naturel d'un organe (par vide ou par plénitude).","idee":"Le qì monte au lieu de descendre (Estomac, Poumon) ou monte de façon excessive (Foie), lésant les fonctions de transit, de descente ou de dégagement.","exemples":"Bronchite, asthme, gastrite, RGO, hypertension (HTA), AVC.","strategie":"Mettre en ordre l’inversion de qì","traitement":"Sū zi jiàng qì tāng ou Xuán Fù Dài Zhě Tāng"},{"id":38,"niveau":"Syndromes du sang","nom":"Vide de sang","chinois":"xuè xū zhèng 血虚证","localisation":"Interne","nature":"Neutre","etat":"Vide","symptomes":"Teint pâle, flétri, jaunâtre (vieux papier journal), vertiges, étourdissements, amaigrissement, peau sèche et rugueuse, engourdissements ou fourmillements des membres, ongles et conjonctives pâles, palpitations, insomnie, rêves abondants, langue et lèvres pâles, pouls fin, règles peu abondantes rouge clair ou aménorrhée.","cles":"Teint pâle, vertiges, ongles/langue pâles, pouls fin.","causes":"Perte excessive de sang (hémorragie, ménorragie), faiblesse de production (surmenage physique, intellectuel, sexuel, émotionnel), facteurs obstruant la circulation (choc, stagnation de qì).","idee":"Le liquide sanguin est insuffisant pour alimenter correctement les tissus et les organes. Le cerveau manque de nutrition (vertiges) et le cœur n'est plus soutenu (palpitations, insomnie). Les vaisseaux ne sont plus remplis (pouls fin).","exemples":"Maladies chroniques, anémie, neurasthénie, dysménorrhée, aménorrhée, convalescence.","strategie":"Tonifier le sang","traitement":"Sì wù tāng"},{"id":39,"niveau":"Syndromes du sang","nom":"Stases de sang","chinois":"xuè yū zhèng 血瘀证","localisation":"Interne","nature":"Neutre","etat":"Plénitude","symptomes":"Douleur fixe, de piqûres ou en coups de poignard aggravée la nuit et à la pression, ecchymoses, pétéchies, hémorragies répétées de sang violacé foncé avec caillots, masses abdominales, peau sèche et desquamante, teint sombre, langue pourpre, pouls rugueux.","cles":"Douleur fixe lancinante, langue pourpre, pouls rugueux, masses.","causes":"Ralentissement circulatoire (stagnation de qì, vide de qì, froid, chaleur, humidité, mucosités) ou sortie du sang hors des vaisseaux (traumatisme, chaleur).","idee":"Le sang stagne à l'intérieur ou à l'extérieur des vaisseaux, créant une obstruction physique qui empêche la libre circulation du qì (douleur fixe). Les tissus locaux sont mal nourris (peau sèche, teint sombre).","exemples":"Traumatisme, angine de poitrine, purpura, hépatomégalie, splénomégalie, tumeurs, cancer.","strategie":"Activer le sang et chasser la stase","traitement":"Guì Zhī Fú Líng Wán ou Táo Hé Chéng Qì Tāng ou Xuè Fǔ Zhú Yū Tāng"},{"id":40,"niveau":"Syndromes du sang","nom":"Chaleur du sang","chinois":"xuè ré zhèng 血热证","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Saignements importants (hématémèse / épistaxis / gencives / hémorragies sous-cutanées / hématurie / selles), sang rouge sombre ou vif, irritabilité, insomnie, agitation anxieuse, dysphorie, crises maniaques, soif de boissons froides, bouche sèche, langue rouge foncé, pouls rapide, glissant ou rugueux.","cles":"Hémorragies rouge vif, agitation mentale, langue rouge foncé, pouls rapide.","causes":"Chaleur externe, émotions se transformant en feu, stagnation de qì chronique, alimentation trop épicée ou alcoolisée.","idee":"L'excès de chaleur blesse les vaisseaux sanguins, entraînant une sortie forcée du sang (extravasation). La chaleur agite l'esprit (Shén) et détériore les liquides organiques (soif).","exemples":"Purpura, leucémie, fièvre hémorragique (Ebola), gastrite aiguë, néphrite aiguë, hématurie.","strategie":"Rafraîchir le sang","traitement":"Xī jiǎo dì huáng tāng"},{"id":41,"niveau":"Syndromes du sang","nom":"Froid du sang","chinois":"xuè hán zhèng 血寒证","localisation":"Interne","nature":"Froid","etat":"Plénitude ou Vide","symptomes":"Membres et corps froids, préférence pour la chaleur, crainte du froid, mains et pieds bleus violacés, douleur fixe et froid aux extrémités ou au bas-ventre (mieux par la chaleur), teint bleu/violacé foncé, langue pâle et sombre avec enduit blanc, pouls profond et lent.","cles":"Membres froids et violacés, douleur améliorée par la chaleur, pouls lent et rugueux.","causes":"Attaque de froid externe qui stagne dans les vaisseaux ou vide de yáng de l'organisme provoquant un froid de type vide.","idee":"Le froid contracte les vaisseaux et congèle le sang, ce qui ralentit ou arrête la circulation. Cette stagnation provoque la coloration violacée et la douleur intense.","exemples":"Maladie de Buerger, maladie de Raynaud, artériosclérose, gelures, dysménorrhée.","strategie":"Tiédir les canaux, expulser le froid et activer le sang","traitement":"Wēn jīng tāng ou Dāng Guī Sì Nì Tāng"},{"id":42,"niveau":"Syndromes du sang","nom":"Hémorragies","chinois":"chū xuè zhèng 出血证","localisation":"Interne","nature":"Variable","etat":"Variable","symptomes":"Saignements de diverses natures : rouge/épais (chaleur), ou léger/rouge clair (vide de qì) ou rouge sombre/caillots (stase) ou abondant avec pâleur/sueur froide (collapsus).","cles":"Saignement (hématémèse / épistaxis / sang dans les selles).","causes":"Chaleur du sang blesse les vaisseaux, vide de qì (la rate ne retient plus le sang), stase de sang (obstrue et fait déborder), collapsus du qì (épuisement du yáng).","idee":"Le sang s'échappe des vaisseaux suite à une agression thermique, une faiblesse de maintien ou un obstacle mécanique. En cas de collapsus, c'est une urgence vitale.","exemples":"Hémorragies digestives, métrorragies, traumatismes graves.","strategie":"Arrêter le saignement","traitement":"Yún Nán Bái Yào ou sān qī"},{"id":43,"niveau":"Syndromes des liquides","nom":"Syndrome de vide des liquides","chinois":"jīn yè kuī xū zhèng 津液亏虚证","localisation":"Interne","nature":"Neutre ou Chaud","etat":"Vide","symptomes":"Lèvres sèches et fissurées, bouche et gorge sèches, soif, peau sèche ou parcheminée/ratatinée, oligurie, urines foncées, selles sèches et difficiles à évacuer, constipation, langue rouge avec peu de liquides, pouls fin, rapide et rugueux.","cles":"Sécheresse des orifices et de la peau, selles sèches, langue rouge peu liquide, pouls fin.","causes":"Hémorragie massive, vomissements ou diarrhées aigus, transpiration profuse, polyurie, maladies fébriles, aliments trop piquants, vide de Rate/Estomac ou de Reins.","idee":"Les liquides sont insuffisants et ne peuvent plus nourrir ni humecter les tissus. L'appauvrissement du Yīn entraîne une augmentation relative de la chaleur Yáng.","exemples":"Constipation avec selles sèches, dermatoses sèches, sécheresse oculaire, maladie de Behçet.","strategie":"Produire les liquides et humecter la sécheresse","traitement":"Zēng Yè Tāng"},{"id":44,"niveau":"Syndromes des liquides","nom":"Syndrome d’humidité","chinois":"shī zhèng 湿证","localisation":"Interne","nature":"Neutre","etat":"Plénitude","symptomes":"Sensation de lourdeur et contractures des membres et du corps, fatigue, difficultés à digérer, ballonnement, nausées, manque d’appétit, œdèmes, dermatoses suintantes, bouche pâteuse, selles molles, urines troubles, langue gonflée avec empreintes dentaires, enduit gras, teint terne/jaunâtre, pouls mou.","cles":"Lourdeur du corps, troubles digestifs avec enduit lingual gras et pouls mou.","causes":"Vide de Rate/Estomac/Poumon/Reins, alimentation trop riche/grasse/sucrée, alcool, accumulation de chaleur ou de froid.","idee":"Les liquides mal transformés stagnent et se condensent. L'humidité se dépose dans les chairs (lourdeur) et obstrue les mouvements du qì nécessaires à la digestion.","exemples":"Bronchite aiguë ou chronique, dyspepsie, obésité, œdèmes.","strategie":"Transformer l’humidité","traitement":"Bái zhú, fú líng, chén pí, bái dòu kòu, zhū líng, shā rén ké"},{"id":45,"niveau":"Syndromes des liquides","nom":"Mucosités dans l’estomac et les intestins","chinois":"tán yǐn zhèng 痰饮证","localisation":"Interne","nature":"Froid","etat":"Plénitude","symptomes":"Malaise à l'épigastre/abdomen/hypocondres/thorax, respiration courte et rapide, palpitations, vertiges, éblouissements, bruit d'eau agitée dans l'estomac, borborygmes, absence de soif, manque d’appétit, amaigrissement, nausées, vomissements de salive et glaires claires, selles molles, enduit blanc et gras, pouls en corde et glissant.","cles":"Bruit d'eau dans l'estomac, borborygmes, vomissements de glaires claires, pouls glissant.","causes":"Entrave de la fonction de transport et de transformation de la Rate et de l'Estomac.","idee":"Les mucosités bloquent le qì dans le système digestif et empêchent la transformation des liquides. L'Estomac plein de glaires provoque une inversion du qì (vomissements).","exemples":"Rétention gastrique par obstruction du pylore, obstruction intestinale.","strategie":"Tiédir et transformer le tán yǐn","traitement":"Líng Guì Zhú Gān Tāng"},{"id":46,"niveau":"Syndromes des liquides","nom":"Mucosités-yǐn suspendues","chinois":"xuè yīn zhèng 悬饮证","localisation":"Interne","nature":"Neutre","etat":"Plénitude","symptomes":"Sensation de distension et de plénitude du thorax et des hypocondres, douleur aux hypocondres aggravée par la respiration, le mouvement, la toux ou l'expectoration (empêche de se coucher), souffle court, respiration rapide, nausées, pouls profond et en corde.","cles":"Douleur thoracique/hypocondres intense à la respiration et à la toux, pouls profond et en corde.","causes":"Lésion des fonctions de diffusion et de descente du Poumon (attaque externe, maladies chroniques, stagnation de qì).","idee":"Les liquides stagnent et se condensent dans le poumon. La douleur de plénitude est aggravée par la pression mécanique de la toux.","exemples":"Pleurésie, épanchement pleural.","strategie":"Expulser drastiquement les mucosités fluides","traitement":"Shí Zǎo Tāng"},{"id":47,"niveau":"Syndromes des liquides","nom":"Mucosités-yǐn débordantes","chinois":"yì yǐn zhèng 溢饮证","localisation":"Externe","nature":"Froid","etat":"Plénitude","symptomes":"Œdèmes généralisés des membres et du corps, sensation de lourdeur et de douleur, oligurie, difficultés urinaires, fièvre et crainte du froid, anhidrose, toux avec dyspnée, expectorations abondantes blanchâtres et mousseuses, nausées, enduit blanc, pouls en corde et serré.","cles":"Œdèmes des membres, fièvre et crainte du froid, pouls serré.","causes":"Attaque de vent-froid externe bloquant le Poumon et la Rate, consommation excessive d'eau froide ou de thé.","idee":"Les mucosités se dirigent vers la surface (chair et peau) et bloquent la circulation. Le froid externe empêche la diffusion des liquides par le Poumon.","exemples":"Néphrite aiguë (stade initial), insuffisance cardiaque droite, glomérulonéphrite.","strategie":"Tiédir et résoudre les mucosités fluides, favoriser l’élimination de l’eau","traitement":"Wǔ Líng Sǎn ou Xiǎo Qīng Lóng Tāng"},{"id":48,"niveau":"Syndromes des liquides","nom":"Rétention de mucosités fluides dans la poitrine","chinois":"zhī yǐn zhèng 支饮证","localisation":"Interne","nature":"Froid","etat":"Plénitude","symptomes":"Plénitude et oppression de la poitrine, impossibilité de rester allongé sur le dos, souffle court, toux et dyspnée, remontées vers le haut, vomissements et expectorations de mucosités blanchâtres/mousseuses/abondantes, œdème du visage et des paupières, crainte du froid, fièvre, enduit blanc et gras, pouls en corde et serré.","cles":"Oppression thoracique, impossibilité de s'allonger, expectorations mousseuses abondantes.","causes":"Consommation de boissons froides, attaque de vent-froid externe.","idee":"Les mucosités envahissent le Poumon et inversent son qì. L'accumulation reflue à contresens car la diffusion est perturbée.","exemples":"Bronchite, asthme, emphysème, maladies cardio-pulmonaires.","strategie":"Tiédir et résoudre les mucosités fluides","traitement":"Xiǎo Qīng Lóng Tāng"},{"id":49,"niveau":"Syndromes des liquides","nom":"Syndrome de mucosités vent","chinois":"fēng tán zhèng 风痰证","localisation":"Interne","nature":"Neutre","etat":"Plénitude","symptomes":"Vertiges et éblouissements, évanouissement soudain, déviation de la bouche et des yeux (paralysie faciale), hémiplégie, raideur de la langue, aphasie, engourdissement des membres, râle trachéal, bruits de crépitement à la gorge, enduit gras, pouls en corde et glissant.","cles":"Évanouissement, paralysie faciale, râle trachéal, pouls en corde et glissant.","causes":"Accumulation de mucosités combinée à une agitation du vent interne (vide de sang, vide de yīn, chaleur extrême).","idee":"Le vent (facteur Yáng) entraîne les mucosités vers le haut et les orifices du Cœur, obstruant les canaux et la conscience.","exemples":"Vertiges de Ménière, épilepsie, AVC.","strategie":"Expulser le vent et transformer les mucosités","traitement":"Dà Qín Jiāo Tāng"},{"id":50,"niveau":"Syndromes des liquides","nom":"Syndrome de mucosités chaleur","chinois":"rè tán zhèng 热痰证","localisation":"Interne","nature":"Chaud","etat":"Plénitude","symptomes":"Dysphorie, sensation fiévreuse au thorax, toux avec expectorations jaunes et épaisses, douleur et obstruction de la gorge, diān kuáng (agitation maniaque), selles sèches et dures, constipation, enduit jaune et gras, pouls rapide, glissant et en corde.","cles":"Expectorations jaunes et épaisses, agitation maniaque, enduit jaune gras, pouls rapide.","causes":"Accumulation de mucosités produisant de la chaleur ou attaque de chaleur externe combinée aux mucosités.","idee":"La chaleur épaissit les mucosités et agite le Shén (esprit), tandis que les mucosités l'embrument, provoquant des troubles mentaux graves.","exemples":"Bronchite aiguë, psychose maniaque (kuáng).","strategie":"Clarifier la chaleur et transformer les mucosités","traitement":"Gǔn Tán Wán ou Qīng Qì Huà Tán Wán"},{"id":51,"niveau":"Syndromes des liquides","nom":"Syndrome de mucosités froid","chinois":"hán tán zhèng 寒痰证","localisation":"Interne","nature":"Froid","etat":"Plénitude ou Vide","symptomes":"Crainte du froid et membres froids, vomissements de mucosités blanchâtres claires et liquidiennes, douleur de piqûre (os/articulations), incapacité à soulever les membres, enduit blanc et gras, pouls profond et lent ou glissant.","cles":"Froid corporel, expectorations blanches et liquides, douleurs articulaires fixes.","causes":"Attaque externe de vent-froid ou vide de yáng.","idee":"Le froid empêche la diffusion des liquides qui s'accumulent. La combinaison froid-mucosités envahit les canaux et crée une stase de sang douloureuse.","exemples":"Rhinopharyngite, bronchite, douleurs articulaires chroniques avec déformation.","strategie":"Tiédir et transformer les mucosités","traitement":"Sān Zi Yǎng Qīn Tāng"},{"id":52,"niveau":"Syndromes des liquides","nom":"Syndrome de mucosités humidité","chinois":"shī tán zhèng 湿痰证","localisation":"Interne","nature":"Humidité","etat":"Plénitude","symptomes":"Oppression thoracique et plénitude à l'épigastre, sensation de masses dans la poitrine, toux, expectorations profuses facilement expectorées, lourdeur du corps et des membres, tête lourde (enserrée), lassitude, somnolence, anorexie, nausées et vomissements, enduit gras épais, pouls mou et glissant.","cles":"Lourdeur extrême, expectorations abondantes faciles, pouls mou et glissant.","causes":"Vide de Rate et de l'Estomac, alimentation trop riche ou alcoolisée.","idee":"L'humidité accumulée perturbe le métabolisme et crée des mucosités denses qui bloquent l'Estomac et le Poumon.","exemples":"Bronchite, asthme, obésité, asthénie.","strategie":"Assécher l’humidité et transformer les mucosités","traitement":"Èr Chén Tāng"},{"id":53,"niveau":"Syndromes des liquides","nom":"Syndrome de mucosités sécheresse","chinois":"zào tán zhèng 燥痰证","localisation":"Interne","nature":"Chaud/Sec","etat":"Plénitude","symptomes":"Expectorations collantes peu abondantes et visqueuses difficiles à expectorer (petites billes ou fils), parfois striées de sang, sécheresse du nez/bouche/gorge, douleur de gorge, peau/yeux/narines secs, selles sèches, langue sèche, pouls fin, glissant et rapide.","cles":"Mucosités en \"petites billes\" très denses et difficiles à sortir, sécheresse généralisée.","causes":"Attaque de sécheresse externe ou chaleur interne asséchant des mucosités déjà présentes.","idee":"La sécheresse ou la chaleur coagule les mucosités et les rend très denses tout en lésant les liquides physiologiques Yīn.","exemples":"Rhinopharyngite, angine, bronchite aiguë.","strategie":"Humecter la sécheresse et transformer les mucosités","traitement":"Qīng Zào Jiù Fèi Tāng ou Bǎi Hé Gù Jīn Tāng"},{"id":54,"niveau":"Syndromes combinés qì et sang","nom":"Syndrome de double vide de qì et de sang","chinois":"qì xuè liǎng xū zhèng 气血两虚证","localisation":"Interne","nature":"Neutre","etat":"Vide","symptomes":"Manque de souffle, pas envie de parler, fatigue physique et mentale, épuisement, pâleur des lèvres et des ongles, ongles striés/mous/cassants, perte de cheveux, transpirations spontanées, vertiges, éblouissements, engourdissements, palpitations, insomnie, amaigrissement, teint pâle ou flétri jaunâtre, langue pâle et molle, pouls fin et faible sans force.","cles":"Symptômes de vide de qì et de vide de sang combinés.","causes":"Vide de qì conduisant au vide de sang, ou hémorragie chronique conduisant au vide de qì, surmenage.","idee":"Le qì et le sang sont tous deux insuffisants. L'hypoactivité du qì affaiblit la mobilisation et la fixation des liquides, tandis que le vide de sang ne parvient plus à nourrir le cœur (insomnie) ni l'organisme (amaigrissement).","exemples":"Maladies chroniques, ménorragies ou métrorragies chroniques, suites de surmenage.","strategie":"Tonifier et soutenir le qì et le sang (bǔ yì qì xuè)","traitement":"Bā Zhēn Tāng ou Shí Quán Dà Bǔ Tāng"},{"id":55,"niveau":"Syndromes combinés qì et sang","nom":"Syndrome de vide de qì et stase de sang","chinois":"qì xū xuè yū zhèng 气虚血瘀证","localisation":"Interne","nature":"Neutre","etat":"Mélange","symptomes":"Manque de souffle, pas envie de parler, fatigue, épuisement, teint pâle et sombre, transpirations spontanées, douleur locale en coup d’aiguille fixe et constante que rien ne soulage, refus de la palpation, formation de masses, corps de la langue pourpre ou avec taches ecchymotiques, pouls fin et rugueux ou profond et rugueux.","cles":"Manque de souffle, fatigue, teint sombre, douleur fixe, langue pourpre.","causes":"Le vide de qì ne permet plus de mobiliser le sang, ce qui entraîne progressivement une stase sanguine.","idee":"Le qì affaibli perd sa fonction de mobilisation, ce qui ralentit la circulation jusqu'au blocage. La stase se manifeste par des douleurs pointues et des signes visibles sur la langue et le teint.","exemples":"Pathologies chroniques avec ralentissement circulatoire, séquelles d'AVC, douleurs chroniques.","strategie":"Soutenir le qì et activer le sang (yì qì huó xuè)","traitement":"Bǔ Yáng Huán Wǔ Tāng"},{"id":56,"niveau":"Syndromes combinés qì et sang","nom":"Syndrome de stagnation du qì et de stase de sang","chinois":"qì zhì xuè yū zhèng 气滞血瘀证","localisation":"Interne","nature":"Neutre","etat":"Plénitude","symptomes":"Douleur de distension et plénitude du thorax et des hypocondres, distension de la poitrine avant les règles, impatience, irritabilité, colère facile, amas et grosseur avec douleur en coup d’aiguille (refus de pression), menstruations retardées sombres et violacées avec caillots, aménorrhée, langue violacée, pouls en corde et rugueux.","cles":"Douleur de distension poitrine/flancs, amas fixes, douleur en coup d'aiguille, règles sombres avec caillots.","causes":"Surpression du Foie et stagnation du qì, blessures traumatiques.","idee":"Le qì commande le sang : s'il stagne, le sang s'arrête. La fonction de libre circulation du Foie est lésée, les émotions sont perturbées et le sang s'accumule en masses ou bloque l'utérus.","exemples":"Hépatite chronique, cirrhose, maladie coronarienne, ulcère gastrique, névrose, dépression, dysménorrhée.","strategie":"Mobiliser le qì et activer le sang (lǐ qì huó xuè)","traitement":"Xiāo Yáo Sǎn (avec ajout de táo rén et hóng huā)"},{"id":57,"niveau":"Syndromes combinés qì et sang","nom":"Syndrome du qì ne maintenant pas le sang","chinois":"qì bú shè xuè zhèng 气不摄血证","localisation":"Interne","nature":"Neutre","etat":"Vide","symptomes":"Hématémèse, sang dans les selles, épistaxis, macules ecchymotiques sous la peau, ménorragie, métrorragie (saignements hors règles), manque de souffle, fatigue mentale et physique, transpirations spontanées, teint pâle/blanc ou flétri jaunâtre, langue pâle, pouls faible.","cles":"Diverses hémorragies ou saignements chroniques et lents accompagnés de symptômes généraux de vide de qì.","causes":"Surmenage affaiblissant la Rate, maladies chroniques de longue durée.","idee":"Le qì vide ne peut plus maintenir le sang dans les vaisseaux. La Rate ne remplit plus sa fonction de fixation, les vaisseaux (Chōng mài et Rèn mài) ne sont plus fermes et le sang déborde.","exemples":"Ménorragie, purpura thrombopénique, anémie, certaines maladies cardiaques.","strategie":"Tonifier le qì et maintenir le sang (bǔ qì shè xuè)","traitement":"Guī Pí Tāng"},{"id":58,"niveau":"Syndromes combinés qì et sang","nom":"Syndrome du qì qui suit l’échappement du sang","chinois":"qì suí xuè tuō zhèng 气随血脱证","localisation":"Interne","nature":"Froid","etat":"Vide","symptomes":"Hémorragies massives (plaies / système gastro-intestinal / post-partum), manque de souffle, respiration ténue, apathie, perte de connaissance, grande transpiration ruisselante à grosses gouttes, incontinence fécale et urinaire, renversement froid des quatre membres, pouls flottant et rapide sans racine ou ténu sur le point de disparaître.","cles":"Hémorragie massive concomitante à une respiration ténue, transpiration profuse et perte de conscience.","causes":"Blessure traumatique grave, hémorragie interne ou externe importante.","idee":"Lors d'une perte de sang massive, le qì s'échappe simultanément. Le qì du Poumon et du Cœur s'épuise, le Yáng qì se disperse et ne peut plus réchauffer ni contrôler les orifices inférieurs.","exemples":"Urgences hémorragiques, choc traumatique, hémorragie de la délivrance.","strategie":"Arrêter les saignements, soutenir le qì et consolider l’effondrement (bǔ qì gù tuō zhǐ xuè)","traitement":"Shēn Fù Tāng avec Yún Nán Bái Yào"}];
+const CATEGORIES = [...new Set(DATA.map(d => d.niveau))];
+
+const STEPS = [
+  null,
+  {field:'localisation', glyph:'位', label:'Localisation', question:"D'après ce tableau, où se situe l'atteinte ?"},
+  {field:'nature',       glyph:'性', label:'Nature',       question:"Quelle est la nature de l'atteinte ?"},
+  {field:'etat',         glyph:'态', label:'État',         question:"Plénitude ou vide : quel est l'état du syndrome ?"},
+  {field:'nom',          glyph:'证', label:'Syndrome',     question:"Quel syndrome correspond à ce tableau clinique ?"},
+  {field:'strategie',    glyph:'法', label:'Stratégie',    question:"Quelle stratégie thérapeutique appliquer ?"},
+  {field:'traitement',   glyph:'方', label:'Traitement',   question:"Quelle formule traite ce syndrome ?"},
+];
+
+const RAIL_META = [
+  {glyph:'症', label:'Symptômes'},
+  {glyph:'位', label:'Localisation'},
+  {glyph:'性', label:'Nature'},
+  {glyph:'态', label:'État'},
+  {glyph:'证', label:'Syndrome'},
+  {glyph:'法', label:'Stratégie'},
+  {glyph:'方', label:'Traitement'},
+];
+
+let state = {
+  screen:'menu',
+  selectedCategories:new Set(CATEGORIES),
+  pool:DATA.slice(),
+  current:null, lastId:null, step:0, score:0, answered:false, hintRevealed:false,
+  totalScore:0, totalQuestions:0, roundsPlayed:0,
+  wall:null, wallRoundsPlayed:0, wallWins:0,
+};
+
+const gameRoot = document.getElementById('gameRoot');
+const headerStats = document.getElementById('headerStats');
+
+/* ---------- HELPERS ---------- */
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function sample(arr,n){ return shuffle(arr).slice(0,n); }
+function uniqueValues(field){ return [...new Set(DATA.map(d=>d[field]))]; }
+function escapeHtml(s){ return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+function computePool(){ state.pool = DATA.filter(d => state.selectedCategories.has(d.niveau)); }
+
+/* ---------- THEME ---------- */
+function wireThemeToggle(){
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const cur = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try{ localStorage.setItem('mtc-game-theme', next); }catch(e){}
+  });
+}
+
+/* ---------- HEADER CONTROLS ---------- */
+function renderHeaderControls(){
+  if(state.screen === 'menu'){
+    headerStats.innerHTML = `<span class="stat-badge">${DATA.length} syndromes au total · ${CATEGORIES.length} catégories</span>`;
+    return;
+  }
+  if(state.screen === 'consultation'){
+    headerStats.innerHTML = `
+      <span class="stat-badge">Cette consultation : <strong>${state.score}/${Math.min(state.step,6)}</strong></span>
+      <span class="stat-badge">Total : <strong>${state.totalScore}/${state.totalQuestions}</strong> · ${state.roundsPlayed} consultation${state.roundsPlayed>1?'s':''}</span>
+      <button class="btn btn-ghost" id="restartBtn" type="button">Nouvelle consultation</button>
+      <button class="btn btn-ghost" id="menuBtn" type="button">← Menu</button>
+    `;
+    document.getElementById('restartBtn').addEventListener('click', startConsultationRound);
+    document.getElementById('menuBtn').addEventListener('click', goMenu);
+    return;
+  }
+  if(state.screen === 'wall'){
+    headerStats.innerHTML = `
+      <span class="stat-badge">Manches : <strong>${state.wallWins}/${state.wallRoundsPlayed}</strong></span>
+      <button class="btn btn-ghost" id="newWallBtn" type="button">Nouvelle manche</button>
+      <button class="btn btn-ghost" id="menuBtn2" type="button">← Menu</button>
+    `;
+    document.getElementById('newWallBtn').addEventListener('click', newWallRound);
+    document.getElementById('menuBtn2').addEventListener('click', goMenu);
+  }
+}
+
+/* ---------- MENU ---------- */
+function goMenu(){
+  state.screen = 'menu';
+  computePool();
+  renderHeaderControls();
+  renderMenu();
+}
+
+function renderMenu(){
+  computePool();
+  const counts = {};
+  CATEGORIES.forEach(c => counts[c] = DATA.filter(d => d.niveau === c).length);
+
+  gameRoot.innerHTML = `
+    <div class="menu-grid">
+      <section class="filter-panel">
+        <h3>Choisissez les catégories</h3>
+        <p class="filter-hint">Les syndromes du jeu seront tirés uniquement parmi les catégories sélectionnées.</p>
+        <div class="filter-options" id="filterOptions">
+          ${CATEGORIES.map(c => `
+            <label class="filter-chip ${state.selectedCategories.has(c) ? 'is-active' : ''}" data-cat="${escapeHtml(c)}">
+              <input type="checkbox" ${state.selectedCategories.has(c) ? 'checked' : ''} />
+              ${escapeHtml(c)} <span style="opacity:.6">(${counts[c]})</span>
+            </label>
+          `).join('')}
+        </div>
+        <p class="filter-count">${state.pool.length} syndrome${state.pool.length>1?'s':''} sélectionné${state.pool.length>1?'s':''}</p>
+        ${state.pool.length === 0 ? '<p class="filter-warning">Sélectionnez au moins une catégorie pour commencer.</p>' : ''}
+      </section>
+
+      <section class="mode-grid">
+        <button class="mode-card" id="modeConsultation" type="button" ${state.pool.length < 1 ? 'disabled' : ''}>
+          <div class="mode-glyph">診</div>
+          <h3>Consultation</h3>
+          <p>Un patient se présente avec un tableau clinique. Devinez pas à pas la localisation, la nature, l'état, le syndrome, la stratégie et le traitement.</p>
+          <span class="mode-cta">Commencer →</span>
+        </button>
+        <button class="mode-card" id="modeWall" type="button" ${state.pool.length < 2 ? 'disabled' : ''}>
+          <div class="mode-glyph">辨</div>
+          <h3>Le mur des symptômes</h3>
+          <p>Deux syndromes, un mur de symptômes mélangés. Choisissez votre cible et retrouvez ses symptômes avant d'épuiser vos 5 essais.</p>
+          <span class="mode-cta">Commencer →</span>
+        </button>
+      </section>
+    </div>
+  `;
+
+  document.querySelectorAll('#filterOptions .filter-chip').forEach(label => {
+    const cb = label.querySelector('input');
+    cb.addEventListener('change', () => {
+      const cat = label.dataset.cat;
+      if(cb.checked) state.selectedCategories.add(cat);
+      else state.selectedCategories.delete(cat);
+      renderHeaderControls();
+      renderMenu();
+    });
+  });
+  const mc = document.getElementById('modeConsultation');
+  if(mc) mc.addEventListener('click', goConsultation);
+  const mw = document.getElementById('modeWall');
+  if(mw) mw.addEventListener('click', goWall);
+}
+
+/* ================== CONSULTATION GAME ================== */
+function goConsultation(){
+  computePool();
+  if(state.pool.length < 1) return;
+  state.screen = 'consultation';
+  gameRoot.innerHTML = `
+    <div class="app-body">
+      <nav class="steps-rail" aria-label="Progression du diagnostic">
+        <ol class="rail-list" id="railList"></ol>
+      </nav>
+      <main class="consult-card" id="consultCard" aria-live="polite"></main>
+    </div>
+  `;
+  buildRail();
+  startConsultationRound();
+}
+
+function buildRail(){
+  const railList = document.getElementById('railList');
+  if(!railList) return;
+  railList.innerHTML = RAIL_META.map((m,i) => `
+    <li class="rail-item" data-idx="${i}">
+      <div class="rail-glyph">${m.glyph}</div>
+      <div class="rail-label">${m.label}<span class="rail-sub">Étape ${i}</span></div>
+    </li>
+  `).join('');
+}
+
+function updateRail(){
+  const railList = document.getElementById('railList');
+  if(!railList) return;
+  const items = railList.querySelectorAll('.rail-item');
+  items.forEach((el,i) => {
+    el.classList.remove('is-done','is-current');
+    if(state.step > 6){ el.classList.add('is-done'); return; }
+    if(i < state.step) el.classList.add('is-done');
+    if(i === state.step) el.classList.add('is-current');
+  });
+}
+
+function pickSyndrome(pool, lastId){
+  let candidates = pool;
+  if(pool.length > 1 && lastId !== null){
+    const filtered = pool.filter(d => d.id !== lastId);
+    if(filtered.length > 0) candidates = filtered;
+  }
+  return candidates[Math.floor(Math.random()*candidates.length)];
+}
+
+function startConsultationRound(){
+  computePool();
+  state.current = pickSyndrome(state.pool, state.lastId);
+  state.lastId = state.current.id;
+  state.step = 0;
+  state.score = 0;
+  state.answered = false;
+  state.hintRevealed = false;
+  updateRail();
+  renderHeaderControls();
+  renderStep0();
+}
+
+function hintBlockHtml(){
+  if(state.hintRevealed){
+    return `<div class="hint-box"><div class="hint-revealed">💡 <strong>Catégorie :</strong> ${escapeHtml(state.current.niveau)}</div></div>`;
+  }
+  return `<div class="hint-box"><button class="hint-toggle" id="hintBtn" type="button">💡 Indice — révéler la catégorie du syndrome</button></div>`;
+}
+function wireHint(rerender){
+  const btn = document.getElementById('hintBtn');
+  if(btn){
+    btn.addEventListener('click', () => {
+      state.hintRevealed = true;
+      rerender();
+    });
+  }
+}
+
+function renderStep0(){
+  const card = document.getElementById('consultCard');
+  const c = state.current;
+  card.innerHTML = `
+    <div class="q-eyebrow">Étape 0 · 症 Présentation clinique</div>
+    <h2 class="q-title">Un patient se présente à la consultation…</h2>
+    <p class="q-hint">Lisez attentivement les signes relevés. Vous devrez ensuite retrouver, étape par étape, la localisation, la nature, l'état, le syndrome, la stratégie et le traitement.</p>
+    <blockquote class="symptom-box">${escapeHtml(c.symptomes)}</blockquote>
+    ${hintBlockHtml()}
+    <div class="step-actions">
+      <button class="btn btn-primary" id="beginBtn" type="button">Commencer l'examen →</button>
+    </div>
+  `;
+  wireHint(renderStep0);
+  document.getElementById('beginBtn').addEventListener('click', () => {
+    state.step = 1;
+    updateRail();
+    renderQuestion();
+  });
+}
+
+function buildOptions(step, current, pool){
+  const field = step.field;
+  let options;
+  if(field === 'localisation' || field === 'nature' || field === 'etat'){
+    const correct = current[field];
+    const others = uniqueValues(field).filter(v => v !== correct);
+    options = shuffle([correct, ...sample(others, Math.min(3, others.length))]);
+  } else if(field === 'nom'){
+    let candPool = pool.filter(d => d.id !== current.id &&
+      d.localisation === current.localisation &&
+      d.nature === current.nature &&
+      d.etat === current.etat);
+    let names = sample(candPool.map(d => d.nom), Math.min(3, candPool.length));
+    if(names.length < 3){
+      const extra = pool.filter(d => d.id !== current.id && d.nom !== current.nom && !names.includes(d.nom)).map(d => d.nom);
+      names = names.concat(sample(extra, 3 - names.length));
+    }
+    if(names.length < 3){
+      const extra2 = DATA.filter(d => d.id !== current.id && d.nom !== current.nom && !names.includes(d.nom)).map(d => d.nom);
+      names = names.concat(sample(extra2, 3 - names.length));
+    }
+    options = shuffle([current.nom, ...names]);
+  } else {
+    const correct = current[field];
+    let others = [...new Set(pool.filter(d => d.id !== current.id && d[field] !== correct).map(d => d[field]))];
+    if(others.length < 3){
+      const extra = [...new Set(DATA.filter(d => d.id !== current.id && d[field] !== correct).map(d => d[field]))]
+        .filter(v => !others.includes(v));
+      others = others.concat(extra);
+    }
+    options = shuffle([correct, ...sample(others, Math.min(3, others.length))]);
+  }
+  return options;
+}
+
+function renderQuestion(){
+  const card = document.getElementById('consultCard');
+  const step = STEPS[state.step];
+  const c = state.current;
+  const opts = buildOptions(step, c, state.pool);
+  state.answered = false;
+
+  card.innerHTML = `
+    <div class="q-eyebrow">Étape ${state.step} · ${step.glyph} ${step.label}</div>
+    <h2 class="q-title">${step.question}</h2>
+    <details class="recall" open>
+      <summary>Rappel des symptômes</summary>
+      <p>${escapeHtml(c.symptomes)}</p>
+    </details>
+    ${hintBlockHtml()}
+    <div class="options" id="optionsWrap"></div>
+    <div id="feedbackWrap"></div>
+    <div class="step-actions" id="actionsWrap"></div>
+  `;
+
+  wireHint(renderQuestion);
+
+  const wrap = document.getElementById('optionsWrap');
+  opts.forEach((opt,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.type = 'button';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => handleAnswer(i, opts, step, c));
+    wrap.appendChild(btn);
+  });
+
+  updateRail();
+  renderHeaderControls();
+}
+
+function handleAnswer(i, opts, step, current){
+  if(state.answered) return;
+  state.answered = true;
+
+  const correctVal = step.field === 'nom' ? current.nom : current[step.field];
+  const selected = opts[i];
+  const isCorrect = selected === correctVal;
+
+  const buttons = document.querySelectorAll('#optionsWrap .opt');
+  buttons.forEach((b,j) => {
+    b.disabled = true;
+    if(opts[j] === correctVal) b.classList.add('is-correct');
+    else if(j === i) b.classList.add('is-wrong');
+    else b.classList.add('is-dim');
+  });
+
+  state.totalQuestions++;
+  if(isCorrect){ state.score++; state.totalScore++; }
+  renderHeaderControls();
+
+  document.getElementById('feedbackWrap').innerHTML = `
+    <div class="feedback ${isCorrect ? '' : 'is-wrong'}">
+      <div class="stamp ${isCorrect ? '' : 'is-wrong'}">${isCorrect ? '正' : '誤'}</div>
+      <div class="feedback-text">
+        <strong>${isCorrect ? 'Juste' : 'Pas tout à fait'}</strong>
+        <span>${isCorrect ? 'Bonne lecture du tableau clinique.' : 'La bonne réponse était : ' + escapeHtml(correctVal)}</span>
+      </div>
+    </div>
+  `;
+
+  const actionsWrap = document.getElementById('actionsWrap');
+  const isLast = state.step === 6;
+  const btn = document.createElement('button');
+  btn.className = 'btn btn-primary';
+  btn.type = 'button';
+  btn.textContent = isLast ? 'Voir la synthèse →' : 'Continuer →';
+  btn.addEventListener('click', () => {
+    if(isLast){
+      state.step = 7;
+      state.roundsPlayed++;
+      updateRail();
+      renderHeaderControls();
+      renderSummary();
+    } else {
+      state.step++;
+      renderQuestion();
+    }
+  });
+  actionsWrap.appendChild(btn);
+}
+
+function fullDetailHtml(s){
+  return `
+    <div class="summary-section">
+      <h4>💡 Idée générale et explication des symptômes</h4>
+      <p>${escapeHtml(s.idee)}</p>
+    </div>
+    <div class="summary-section">
+      <h4>⚙ Causes du syndrome</h4>
+      <p>${escapeHtml(s.causes)}</p>
+    </div>
+    <div class="summary-section">
+      <h4>🔑 Symptômes clés</h4>
+      <p>${escapeHtml(s.cles)}</p>
+    </div>
+    <div class="summary-section">
+      <h4>症 Symptômes</h4>
+      <p>${escapeHtml(s.symptomes)}</p>
+    </div>
+    <div class="summary-section">
+      <h4>📋 Exemples de pathologies</h4>
+      <p>${escapeHtml(s.exemples)}</p>
+    </div>
+    <div class="summary-section">
+      <h4>法 Stratégie</h4>
+      <p>${escapeHtml(s.strategie)}</p>
+    </div>
+    <div class="summary-section">
+      <h4>方 Traitement</h4>
+      <p>${escapeHtml(s.traitement)}</p>
+    </div>
+  `;
+}
+
+function renderSummary(){
+  const card = document.getElementById('consultCard');
+  const c = state.current;
+  card.innerHTML = `
+    <div class="summary-eyebrow">${escapeHtml(c.niveau)} · 总结 Synthèse de la consultation</div>
+    <div class="summary-head">
+      <div>
+        <h2 class="summary-name">${escapeHtml(c.nom)}</h2>
+        <div class="summary-cn">${escapeHtml(c.chinois)}</div>
+      </div>
+      <div class="score-pill">${state.score}/6 cette consultation</div>
+    </div>
+    <div class="tag-row">
+      <span class="tag">位 ${escapeHtml(c.localisation)}</span>
+      <span class="tag">性 ${escapeHtml(c.nature)}</span>
+      <span class="tag">态 ${escapeHtml(c.etat)}</span>
+    </div>
+    ${fullDetailHtml(c)}
+    <div class="summary-actions">
+      <span class="stat-badge">Score cumulé : <strong>${state.totalScore}/${state.totalQuestions}</strong></span>
+      <button class="btn btn-primary" id="nextBtn" type="button">Patient suivant →</button>
+    </div>
+  `;
+  document.getElementById('nextBtn').addEventListener('click', startConsultationRound);
+}
+
+/* ================== WALL GAME (mur des symptômes) ================== */
+function splitSymptoms(text){
+  return text.replace(/\.\s*$/,'').split(',').map(s => s.trim()).filter(s => s.length > 0);
+}
+function normalizeSymptom(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,'').trim();
+}
+function diffScore(a,b){
+  return ['localisation','nature','etat'].reduce((acc,f) => acc + (a[f] !== b[f] ? 1 : 0), 0);
+}
+function pickWallPair(pool){
+  if(pool.length < 2) return null;
+  const tryFind = (minDiff, minChips, attempts) => {
+    for(let i=0;i<attempts;i++){
+      const a = pool[Math.floor(Math.random()*pool.length)];
+      const b = pool[Math.floor(Math.random()*pool.length)];
+      if(b.id === a.id) continue;
+      if(diffScore(a,b) < minDiff) continue;
+      const aRaw = splitSymptoms(a.symptomes);
+      const bRaw = splitSymptoms(b.symptomes);
+      const bNorm = new Set(bRaw.map(normalizeSymptom));
+      const aNorm = new Set(aRaw.map(normalizeSymptom));
+      const aUniq = aRaw.filter(s => !bNorm.has(normalizeSymptom(s)));
+      const bUniq = bRaw.filter(s => !aNorm.has(normalizeSymptom(s)));
+      if(aUniq.length >= minChips && bUniq.length >= minChips){
+        return {a,b,aUniq,bUniq};
+      }
+    }
+    return null;
+  };
+  return tryFind(2,3,80) || tryFind(1,2,80) || tryFind(0,1,80) || (() => {
+    const a = pool[0];
+    const b = pool[1] || pool[Math.floor(Math.random()*pool.length)];
+    return {a,b,aUniq:splitSymptoms(a.symptomes),bUniq:splitSymptoms(b.symptomes)};
+  })();
+}
+
+function goWall(){
+  computePool();
+  if(state.pool.length < 2) return;
+  state.screen = 'wall';
+  gameRoot.innerHTML = `<div id="wallRoot"></div>`;
+  newWallRound();
+}
+
+function newWallRound(){
+  computePool();
+  renderHeaderControls();
+  const pair = pickWallPair(state.pool);
+  const root = document.getElementById('wallRoot');
+  if(!pair){
+    root.innerHTML = `<div class="wall-card"><p>Il faut au moins deux syndromes dans les catégories sélectionnées pour jouer à ce jeu.</p></div>`;
+    return;
+  }
+  state.wall = {
+    a: pair.a, b: pair.b,
+    aChips: pair.aUniq, bChips: pair.bUniq,
+    target: null, decoy: null,
+    wallItems: null,
+    foundCount: 0, triesLeft: 5,
+    status: 'choosing',
+  };
+  renderWallChoice();
+}
+
+function renderWallChoice(){
+  const w = state.wall;
+  const root = document.getElementById('wallRoot');
+  root.innerHTML = `
+    <div class="wall-target-pick">
+      <div class="q-eyebrow">辨 Le mur des symptômes</div>
+      <h2 class="q-title">Choisissez votre syndrome cible</h2>
+      <p class="q-hint">Deux syndromes sont en lice. Choisissez celui dont vous voulez retrouver les symptômes dans le mur ci-dessous : l'autre servira de leurre.</p>
+      <div class="target-options">
+        <button class="target-btn" data-pick="a" type="button">
+          <span class="t-label">${escapeHtml(w.a.niveau)}</span>
+          <span class="t-name">${escapeHtml(w.a.nom)}</span>
+          <span class="t-cn">${escapeHtml(w.a.chinois)}</span>
+        </button>
+        <button class="target-btn" data-pick="b" type="button">
+          <span class="t-label">${escapeHtml(w.b.niveau)}</span>
+          <span class="t-name">${escapeHtml(w.b.nom)}</span>
+          <span class="t-cn">${escapeHtml(w.b.chinois)}</span>
+        </button>
+      </div>
+    </div>
+  `;
+  root.querySelectorAll('.target-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pick = btn.dataset.pick;
+      w.target = pick === 'a' ? w.a : w.b;
+      w.decoy  = pick === 'a' ? w.b : w.a;
+      const targetChips = (pick === 'a' ? w.aChips : w.bChips).map((t,i) => ({id:'t'+i, text:t, isCorrect:true}));
+      const decoyChips  = (pick === 'a' ? w.bChips : w.aChips).map((t,i) => ({id:'d'+i, text:t, isCorrect:false}));
+      w.wallItems = shuffle([...targetChips, ...decoyChips]);
+      w.status = 'playing';
+      renderWallPlay();
+    });
+  });
+}
+
+function renderWallPlay(){
+  const w = state.wall;
+  const root = document.getElementById('wallRoot');
+  const totalTarget = w.wallItems.filter(it => it.isCorrect).length;
+  root.innerHTML = `
+    <div class="wall-card">
+      <div class="wall-banner">
+        <div class="wall-target-name">🎯 Cible : <span>${escapeHtml(w.target.nom)}</span></div>
+        <div class="lives" id="livesWrap"></div>
+      </div>
+      <p class="progress-line" id="progressLine">Trouvés : <strong>${w.foundCount}/${totalTarget}</strong> · Essais restants : <strong>${w.triesLeft}</strong></p>
+      <div class="wall-grid" id="wallGrid"></div>
+      <div id="wallResult"></div>
+    </div>
+  `;
+  renderLives();
+  const grid = document.getElementById('wallGrid');
+  w.wallItems.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'wall-chip';
+    btn.type = 'button';
+    btn.textContent = item.text;
+    btn.addEventListener('click', () => handleWallChipClick(item, btn));
+    grid.appendChild(btn);
+  });
+}
+
+function renderLives(){
+  const w = state.wall;
+  const wrap = document.getElementById('livesWrap');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  for(let i=0;i<5;i++){
+    const dot = document.createElement('span');
+    dot.className = 'life-dot' + (i < w.triesLeft ? '' : ' is-used');
+    wrap.appendChild(dot);
+  }
+}
+
+function handleWallChipClick(item, btn){
+  const w = state.wall;
+  if(w.status !== 'playing' || item.state) return;
+
+  if(item.isCorrect){
+    item.state = 'found';
+    btn.classList.add('is-found');
+    w.foundCount++;
+  } else {
+    item.state = 'wrong';
+    btn.classList.add('is-wrong');
+    w.triesLeft--;
+  }
+  btn.disabled = true;
+  renderLives();
+
+  const totalTarget = w.wallItems.filter(it => it.isCorrect).length;
+  const progressLine = document.getElementById('progressLine');
+  if(progressLine) progressLine.innerHTML = `Trouvés : <strong>${w.foundCount}/${totalTarget}</strong> · Essais restants : <strong>${w.triesLeft}</strong>`;
+
+  if(w.foundCount >= totalTarget){
+    w.status = 'won';
+    endWallRound(true);
+  } else if(w.triesLeft <= 0){
+    w.status = 'lost';
+    endWallRound(false);
+  }
+}
+
+function endWallRound(won){
+  const w = state.wall;
+  state.wallRoundsPlayed++;
+  if(won) state.wallWins++;
+  renderHeaderControls();
+
+  document.querySelectorAll('#wallGrid .wall-chip').forEach((btn,i) => {
+    const item = w.wallItems[i];
+    btn.disabled = true;
+    if(item.isCorrect && item.state !== 'found'){
+      item.state = 'missed';
+      btn.classList.add('is-missed');
+    }
+  });
+
+  const resultBox = document.getElementById('wallResult');
+  resultBox.innerHTML = `
+    <div class="wall-result-banner ${won ? 'is-win' : 'is-lose'}">
+      ${won ? '🎉 Bravo, tous les symptômes du syndrome cible ont été retrouvés !' : '✗ Essais épuisés — le mur garde quelques secrets.'}
+    </div>
+    <div class="tag-row">
+      <span class="tag">${escapeHtml(w.target.niveau)}</span>
+      <span class="tag">位 ${escapeHtml(w.target.localisation)}</span>
+      <span class="tag">性 ${escapeHtml(w.target.nature)}</span>
+      <span class="tag">态 ${escapeHtml(w.target.etat)}</span>
+    </div>
+    <div class="summary-section">
+      <h4>🎯 Cible — ${escapeHtml(w.target.nom)}</h4>
+      <p><em>${escapeHtml(w.target.chinois)}</em></p>
+    </div>
+    ${fullDetailHtml(w.target)}
+    <div class="summary-section">
+      <h4>Leurre — ${escapeHtml(w.decoy.nom)}</h4>
+      <p>${escapeHtml(w.decoy.symptomes)}</p>
+    </div>
+    <div class="summary-actions">
+      <span class="stat-badge">Manches : <strong>${state.wallWins}/${state.wallRoundsPlayed}</strong></span>
+      <button class="btn btn-primary" id="wallNextBtn" type="button">Nouvelle manche →</button>
+    </div>
+  `;
+  document.getElementById('wallNextBtn').addEventListener('click', newWallRound);
+  resultBox.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+/* ---------- INIT ---------- */
+wireThemeToggle();
+goMenu();
+</script>
+</body>
+</html>
