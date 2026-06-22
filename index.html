@@ -204,20 +204,49 @@
 
   /* ---------- MENU ---------- */
   .menu-grid{display:grid;gap:26px;}
-  .filter-panel{background:var(--paper-deep);border:1px solid var(--paper-line);border-radius:var(--radius-lg);padding:28px 30px;}
-  .filter-panel h3{font-family:var(--serif);font-size:18px;margin:0 0 4px;}
-  .filter-hint{font-family:var(--sans);font-size:13px;color:var(--ink-soft);margin:0 0 16px;}
-  .filter-options{display:flex;gap:12px;flex-wrap:wrap;}
-  .filter-chip{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:14px;font-weight:600;
-    padding:10px 16px;border-radius:12px;border:1.5px solid var(--paper-line);background:var(--paper);color:var(--ink-soft);
-    cursor:pointer;user-select:none;}
-  .filter-chip input{accent-color:var(--seal);width:16px;height:16px;}
-  .filter-chip.is-active{border-color:var(--seal);color:var(--ink);background:rgba(174,46,36,.06);}
-  .filter-count{margin-top:14px;font-family:var(--sans);font-size:13px;color:var(--ink-soft);}
+  .filter-panel{background:var(--paper-deep);border:1px solid var(--paper-line);border-radius:var(--radius-lg);padding:22px 30px;display:flex;align-items:center;flex-wrap:wrap;gap:16px;}
+  .filter-panel h3{font-family:var(--serif);font-size:17px;margin:0;white-space:nowrap;}
+  .filter-count{font-family:var(--sans);font-size:13px;color:var(--ink-soft);white-space:nowrap;}
   .filter-count strong{color:var(--ink);}
-  .filter-warning{margin-top:8px;font-family:var(--sans);font-size:13px;color:var(--seal-deep);font-weight:600;}
+  .filter-warning{font-family:var(--sans);font-size:13px;color:var(--seal-deep);font-weight:600;}
 
-  .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  /* --- dropdown multi-select --- */
+  .msel-wrap{position:relative;flex:1 1 260px;min-width:200px;}
+  .msel-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+    font-family:var(--sans);font-size:14px;font-weight:600;
+    padding:10px 14px;border-radius:12px;border:1.5px solid var(--paper-line);
+    background:var(--paper);color:var(--ink);cursor:pointer;text-align:left;}
+  .msel-trigger:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+  .msel-trigger.is-open{border-color:var(--jade);border-radius:12px 12px 0 0;}
+  .msel-caret{font-size:10px;opacity:.6;transition:transform .18s ease;flex-shrink:0;}
+  .msel-trigger.is-open .msel-caret{transform:rotate(180deg);}
+  .msel-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  .msel-dropdown{position:absolute;top:100%;left:0;right:0;z-index:20;
+    background:var(--paper);border:1.5px solid var(--jade);border-top:none;
+    border-radius:0 0 12px 12px;box-shadow:0 12px 28px -10px rgba(43,36,28,.28);
+    overflow:hidden;animation:dropIn .14s ease;}
+  @keyframes dropIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+
+  .msel-actions{display:flex;gap:0;border-bottom:1px solid var(--paper-line);}
+  .msel-action{flex:1;font-family:var(--sans);font-size:12px;font-weight:700;
+    padding:8px 6px;background:none;border:none;color:var(--jade);cursor:pointer;text-align:center;}
+  .msel-action:hover{background:rgba(63,99,87,.08);}
+  .msel-action + .msel-action{border-left:1px solid var(--paper-line);}
+
+  .msel-list{list-style:none;margin:0;padding:4px 0;max-height:260px;overflow-y:auto;}
+  .msel-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;
+    font-family:var(--sans);font-size:13.5px;color:var(--ink);}
+  .msel-item:hover{background:rgba(63,99,87,.07);}
+  .msel-item.is-checked{color:var(--jade);font-weight:600;}
+  .msel-checkbox{flex-shrink:0;width:17px;height:17px;border-radius:5px;border:1.5px solid var(--paper-line);
+    background:var(--paper-deep);display:flex;align-items:center;justify-content:center;font-size:11px;}
+  .msel-item.is-checked .msel-checkbox{background:var(--jade);border-color:var(--jade-deep);color:#fff;}
+  .msel-item-label{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .msel-item-count{font-size:11.5px;color:var(--ink-soft);flex-shrink:0;}
+
+  .mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  @media (max-width:900px){.mode-grid{grid-template-columns:1fr 1fr;}}
   @media (max-width:760px){.mode-grid{grid-template-columns:1fr;}}
   .mode-card{background:var(--paper-deep);border:1.5px solid var(--paper-line);border-radius:var(--radius-lg);
     padding:28px 26px;display:flex;flex-direction:column;gap:10px;cursor:pointer;text-align:left;width:100%;font-family:var(--serif);}
@@ -228,6 +257,49 @@
   .mode-card h3{font-family:var(--serif);font-size:20px;margin:4px 0 2px;color:var(--ink);}
   .mode-card p{font-family:var(--sans);font-size:13.5px;line-height:1.6;color:var(--ink-soft);margin:0;}
   .mode-cta{margin-top:auto;font-family:var(--sans);font-weight:700;font-size:13.5px;color:var(--seal-deep);display:flex;align-items:center;gap:6px;}
+
+  /* ---------- REFERENCE ---------- */
+  .ref-card{background:var(--paper-deep);border:1px solid var(--paper-line);border-radius:var(--radius-lg);
+    padding:32px 36px;box-shadow:0 1px 0 rgba(43,36,28,.04), 0 14px 30px -18px rgba(43,36,28,.3);animation:fadeIn .35s ease;}
+  .ref-tabs{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+  .ref-tab{font-family:var(--sans);font-size:14px;font-weight:600;padding:9px 18px;border-radius:999px;
+    border:1.5px solid var(--paper-line);background:var(--paper);color:var(--ink-soft);cursor:pointer;}
+  .ref-tab.is-active{background:var(--jade);border-color:var(--jade-deep);color:#fff;}
+  .ref-tab:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+
+  .ref-search-wrap{position:relative;margin-bottom:20px;}
+  .ref-search{width:100%;font-family:var(--sans);font-size:15px;padding:13px 18px 13px 44px;
+    border-radius:12px;border:1.5px solid var(--paper-line);background:var(--paper);color:var(--ink);
+    outline:none;}
+  .ref-search:focus{border-color:var(--jade);}
+  .ref-search::placeholder{color:var(--ink-soft);}
+  .ref-search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);
+    font-size:18px;color:var(--ink-soft);pointer-events:none;line-height:1;}
+  .ref-search-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    font-family:var(--sans);font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;
+    border:1px solid var(--paper-line);background:var(--paper-deep);color:var(--ink-soft);cursor:pointer;display:none;}
+  .ref-search-clear.is-visible{display:block;}
+
+  .ref-results{display:grid;gap:10px;max-height:480px;overflow-y:auto;padding-right:4px;}
+  .ref-result-item{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:12px;
+    border:1.5px solid var(--paper-line);background:var(--paper);cursor:pointer;text-align:left;width:100%;}
+  .ref-result-item:hover{border-color:var(--jade);background:rgba(63,99,87,.05);}
+  .ref-result-item:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+  .ref-result-name{font-family:var(--serif);font-size:15.5px;font-weight:700;color:var(--ink);}
+  .ref-result-cn{font-family:var(--serif);font-style:italic;font-size:13px;color:var(--ink-soft);}
+  .ref-result-meta{font-family:var(--sans);font-size:12px;color:var(--ink-soft);display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;}
+  .ref-result-meta span{padding:2px 8px;border-radius:999px;background:var(--paper-deep);border:1px solid var(--paper-line);}
+  .ref-highlight{background:rgba(184,134,43,.28);border-radius:3px;padding:0 2px;}
+  .ref-symptom-excerpt{font-family:var(--serif);font-size:13px;color:var(--ink-soft);margin-top:4px;line-height:1.55;font-style:italic;}
+
+  .ref-empty{font-family:var(--sans);font-size:14px;color:var(--ink-soft);text-align:center;padding:40px 0;}
+  .ref-count{font-family:var(--sans);font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;}
+
+  .ref-fiche{animation:fadeIn .25s ease;}
+  .ref-fiche-back{font-family:var(--sans);font-size:13px;font-weight:600;padding:8px 0;border:none;background:none;
+    color:var(--jade);cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:18px;}
+  .ref-fiche-back:hover{opacity:.75;}
+  .ref-fiche-back:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
 
   /* ---------- WALL GAME ---------- */
   .wall-target-pick{background:var(--paper-deep);border:1px solid var(--paper-line);border-radius:var(--radius-lg);padding:32px 34px;animation:fadeIn .35s ease;}
@@ -402,6 +474,13 @@ function renderHeaderControls(){
     document.getElementById('newWallBtn').addEventListener('click', newWallRound);
     document.getElementById('menuBtn2').addEventListener('click', goMenu);
   }
+  if(state.screen === 'ref'){
+    headerStats.innerHTML = `
+      <span class="stat-badge">${DATA.length} syndromes · ${CATEGORIES.length} catégories</span>
+      <button class="btn btn-ghost" id="menuBtnRef" type="button">← Menu</button>
+    `;
+    document.getElementById('menuBtnRef').addEventListener('click', goMenu);
+  }
 }
 
 /* ---------- MENU ---------- */
@@ -417,21 +496,29 @@ function renderMenu(){
   const counts = {};
   CATEGORIES.forEach(c => counts[c] = DATA.filter(d => d.niveau === c).length);
 
+  const allSelected = state.selectedCategories.size === CATEGORIES.length;
+  const noneSelected = state.selectedCategories.size === 0;
+  const triggerLabel = allSelected
+    ? 'Toutes les catégories'
+    : noneSelected
+      ? 'Aucune catégorie'
+      : state.selectedCategories.size === 1
+        ? [...state.selectedCategories][0]
+        : `${state.selectedCategories.size} catégories sélectionnées`;
+
   gameRoot.innerHTML = `
     <div class="menu-grid">
       <section class="filter-panel">
-        <h3>Choisissez les catégories</h3>
-        <p class="filter-hint">Les syndromes du jeu seront tirés uniquement parmi les catégories sélectionnées.</p>
-        <div class="filter-options" id="filterOptions">
-          ${CATEGORIES.map(c => `
-            <label class="filter-chip ${state.selectedCategories.has(c) ? 'is-active' : ''}" data-cat="${escapeHtml(c)}">
-              <input type="checkbox" ${state.selectedCategories.has(c) ? 'checked' : ''} />
-              ${escapeHtml(c)} <span style="opacity:.6">(${counts[c]})</span>
-            </label>
-          `).join('')}
+        <h3>Catégories</h3>
+        <div class="msel-wrap" id="mselWrap">
+          <button class="msel-trigger" id="mselTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span class="msel-label">${escapeHtml(triggerLabel)}</span>
+            <span class="msel-caret">▼</span>
+          </button>
+          <!-- dropdown injected by JS -->
         </div>
-        <p class="filter-count">${state.pool.length} syndrome${state.pool.length>1?'s':''} sélectionné${state.pool.length>1?'s':''}</p>
-        ${state.pool.length === 0 ? '<p class="filter-warning">Sélectionnez au moins une catégorie pour commencer.</p>' : ''}
+        <span class="filter-count"><strong>${state.pool.length}</strong> syndrome${state.pool.length>1?'s':''}</span>
+        ${noneSelected ? '<span class="filter-warning">Sélectionnez au moins une catégorie.</span>' : ''}
       </section>
 
       <section class="mode-grid">
@@ -447,22 +534,135 @@ function renderMenu(){
           <p>Deux syndromes, un mur de symptômes mélangés. Choisissez votre cible et retrouvez ses symptômes avant d'épuiser vos 5 essais.</p>
           <span class="mode-cta">Commencer →</span>
         </button>
+        <button class="mode-card" id="modeRef" type="button">
+          <div class="mode-glyph" style="background:var(--jade)">典</div>
+          <h3>Référence</h3>
+          <p>Recherchez un syndrome par son nom ou retrouvez tous les syndromes partageant un symptôme donné. Affichez la fiche complète.</p>
+          <span class="mode-cta" style="color:var(--jade)">Consulter →</span>
+        </button>
       </section>
     </div>
   `;
 
-  document.querySelectorAll('#filterOptions .filter-chip').forEach(label => {
-    const cb = label.querySelector('input');
-    cb.addEventListener('change', () => {
-      const cat = label.dataset.cat;
-      if(cb.checked) state.selectedCategories.add(cat);
-      else state.selectedCategories.delete(cat);
+  /* ---- multi-select dropdown logic ---- */
+  const wrap    = document.getElementById('mselWrap');
+  const trigger = document.getElementById('mselTrigger');
+  let isOpen = false;
+
+  function updateTriggerLabel(){
+    const all = state.selectedCategories.size === CATEGORIES.length;
+    const none = state.selectedCategories.size === 0;
+    trigger.querySelector('.msel-label').textContent =
+      all  ? 'Toutes les catégories'  :
+      none ? 'Aucune catégorie'        :
+      state.selectedCategories.size === 1 ? [...state.selectedCategories][0] :
+      `${state.selectedCategories.size} catégories sélectionnées`;
+  }
+
+  function openDropdown(){
+    if(isOpen) return;
+    isOpen = true;
+    trigger.classList.add('is-open');
+    trigger.setAttribute('aria-expanded','true');
+
+    const dd = document.createElement('div');
+    dd.className = 'msel-dropdown';
+    dd.id = 'mselDropdown';
+    dd.innerHTML = `
+      <div class="msel-actions">
+        <button class="msel-action" id="mselAll" type="button">Tout sélectionner</button>
+        <button class="msel-action" id="mselNone" type="button">Tout désélectionner</button>
+      </div>
+      <ul class="msel-list" id="mselList" role="listbox" aria-multiselectable="true">
+        ${CATEGORIES.map(c => {
+          const checked = state.selectedCategories.has(c);
+          return `<li class="msel-item ${checked?'is-checked':''}" data-cat="${escapeHtml(c)}" role="option" aria-selected="${checked}" tabindex="0">
+            <span class="msel-checkbox">${checked?'✓':''}</span>
+            <span class="msel-item-label">${escapeHtml(c)}</span>
+            <span class="msel-item-count">${counts[c]}</span>
+          </li>`;
+        }).join('')}
+      </ul>
+    `;
+    wrap.appendChild(dd);
+
+    function refreshItems(){
+      dd.querySelectorAll('.msel-item').forEach(item => {
+        const cat = item.dataset.cat;
+        const on = state.selectedCategories.has(cat);
+        item.classList.toggle('is-checked', on);
+        item.setAttribute('aria-selected', on);
+        item.querySelector('.msel-checkbox').textContent = on ? '✓' : '';
+      });
+      updateTriggerLabel();
+      computePool();
+      // update count + warning inline
+      const countEl = document.querySelector('.filter-count');
+      if(countEl) countEl.innerHTML = `<strong>${state.pool.length}</strong> syndrome${state.pool.length>1?'s':''}`;
+      let warnEl = document.querySelector('.filter-warning');
+      if(state.pool.length === 0){
+        if(!warnEl){ warnEl = document.createElement('span'); warnEl.className='filter-warning'; wrap.closest('.filter-panel').appendChild(warnEl); }
+        warnEl.textContent = 'Sélectionnez au moins une catégorie.';
+      } else if(warnEl){ warnEl.remove(); }
+      // enable/disable mode buttons
+      const mc = document.getElementById('modeConsultation');
+      const mw = document.getElementById('modeWall');
+      if(mc) mc.disabled = state.pool.length < 1;
+      if(mw) mw.disabled = state.pool.length < 2;
       renderHeaderControls();
-      renderMenu();
+    }
+
+    dd.querySelectorAll('.msel-item').forEach(item => {
+      const toggle = () => {
+        const cat = item.dataset.cat;
+        if(state.selectedCategories.has(cat)) state.selectedCategories.delete(cat);
+        else state.selectedCategories.add(cat);
+        refreshItems();
+      };
+      item.addEventListener('click', toggle);
+      item.addEventListener('keydown', e => { if(e.key===' '||e.key==='Enter'){e.preventDefault();toggle();} });
     });
+
+    document.getElementById('mselAll').addEventListener('click', () => {
+      CATEGORIES.forEach(c => state.selectedCategories.add(c));
+      refreshItems();
+    });
+    document.getElementById('mselNone').addEventListener('click', () => {
+      state.selectedCategories.clear();
+      refreshItems();
+    });
+  }
+
+  function closeDropdown(){
+    if(!isOpen) return;
+    isOpen = false;
+    trigger.classList.remove('is-open');
+    trigger.setAttribute('aria-expanded','false');
+    const dd = document.getElementById('mselDropdown');
+    if(dd) dd.remove();
+  }
+
+  trigger.addEventListener('click', e => {
+    e.stopPropagation();
+    isOpen ? closeDropdown() : openDropdown();
   });
+
+  document.addEventListener('click', function onOutside(e){
+    if(!wrap.contains(e.target)){
+      closeDropdown();
+      document.removeEventListener('click', onOutside);
+    }
+  });
+
+  document.addEventListener('keydown', function onEsc(e){
+    if(e.key === 'Escape'){ closeDropdown(); document.removeEventListener('keydown', onEsc); }
+  });
+
+  /* ---- mode buttons ---- */
   const mc = document.getElementById('modeConsultation');
   if(mc) mc.addEventListener('click', goConsultation);
+  const mr = document.getElementById('modeRef');
+  if(mr) mr.addEventListener('click', goRef);
   const mw = document.getElementById('modeWall');
   if(mw) mw.addEventListener('click', goWall);
 }
@@ -745,6 +945,217 @@ function renderSummary(){
     </div>
   `;
   document.getElementById('nextBtn').addEventListener('click', startConsultationRound);
+}
+
+/* ================== REFERENCE ================== */
+function normalize(s){
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+function tokenize(q){
+  return q.trim().split(/\s+/).filter(Boolean).map(normalize);
+}
+
+function highlight(text, query){
+  if(!query) return escapeHtml(text);
+  const words = tokenize(query);
+  if(!words.length) return escapeHtml(text);
+  const re = new RegExp('(' + words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')', 'gi');
+  return escapeHtml(text).replace(re, '<mark class="ref-highlight">$1</mark>');
+}
+
+function excerptSymptom(symptomes, query){
+  const words = tokenize(query);
+  if(!words.length) return '';
+  const parts = symptomes.split(/[,;.]+/).map(s => s.trim()).filter(Boolean);
+  const seen = new Set();
+  const hits = [];
+  for(const word of words){
+    const match = parts.find(p => normalize(p).includes(word) && !seen.has(p));
+    if(match){ seen.add(match); hits.push(match); }
+  }
+  return hits.length ? '…' + hits.join(' · ') + '…' : '';
+}
+
+function goRef(){
+  state.screen = 'ref';
+  state.ref = { tab:'syndrome', query:'', selected:null };
+  renderHeaderControls();
+  gameRoot.innerHTML = `<div id="refRoot"></div>`;
+  renderRefScreen();
+}
+
+function renderRefScreen(){
+  const root = document.getElementById('refRoot');
+  if(!root) return;
+  root.innerHTML = `
+    <div class="ref-card">
+      <div class="ref-tabs">
+        <button class="ref-tab ${state.ref.tab==='syndrome'?'is-active':''}" id="tabSyndrome" type="button">🔍 Par syndrome</button>
+        <button class="ref-tab ${state.ref.tab==='symptome'?'is-active':''}" id="tabSymptome" type="button">🔍 Par symptôme</button>
+      </div>
+      <div id="refContent"></div>
+    </div>
+  `;
+  document.getElementById('tabSyndrome').addEventListener('click', () => {
+    state.ref.tab = 'syndrome'; state.ref.query = ''; state.ref.selected = null;
+    renderRefScreen();
+  });
+  document.getElementById('tabSymptome').addEventListener('click', () => {
+    state.ref.tab = 'symptome'; state.ref.query = ''; state.ref.selected = null;
+    renderRefScreen();
+  });
+  if(state.ref.selected){
+    renderRefFiche(state.ref.selected);
+  } else if(state.ref.tab === 'syndrome'){
+    renderRefSearch({
+      placeholder:'Nom du syndrome…',
+      searchFn: q => {
+        if(!q) return DATA.slice().sort((a,b)=>a.nom.localeCompare(b.nom));
+        const words = tokenize(q);
+        return DATA.filter(d => {
+          const hay = normalize(d.nom) + ' ' + normalize(d.chinois);
+          return words.every(w => hay.includes(w));
+        }).sort((a,b)=>a.nom.localeCompare(b.nom));
+      },
+      renderRow: (d, q) => `
+        <button class="ref-result-item" data-id="${d.id}" type="button">
+          <span class="ref-result-name">${highlight(d.nom, q)}</span>
+          <span class="ref-result-cn">${highlight(d.chinois, q)}</span>
+          <div class="ref-result-meta">
+            <span>${escapeHtml(d.niveau)}</span>
+            <span>${escapeHtml(d.localisation)}</span>
+            <span>${escapeHtml(d.nature)}</span>
+            <span>${escapeHtml(d.etat)}</span>
+          </div>
+        </button>
+      `,
+    });
+  } else {
+    renderRefSearch({
+      placeholder:'Chercher un symptôme…',
+      searchFn: q => {
+        if(!q) return [];
+        const words = tokenize(q);
+        return DATA.filter(d => {
+          const hay = normalize(d.symptomes) + ' ' + normalize(d.cles);
+          return words.every(w => hay.includes(w));
+        }).sort((a,b)=>a.nom.localeCompare(b.nom));
+      },
+      renderRow: (d, q) => {
+        const excerpt = excerptSymptom(d.symptomes + ', ' + d.cles, q);
+        return `
+          <button class="ref-result-item" data-id="${d.id}" type="button">
+            <span class="ref-result-name">${escapeHtml(d.nom)}</span>
+            <span class="ref-result-cn">${escapeHtml(d.chinois)}</span>
+            <div class="ref-result-meta">
+              <span>${escapeHtml(d.niveau)}</span>
+              <span>${escapeHtml(d.localisation)}</span>
+              <span>${escapeHtml(d.nature)}</span>
+            </div>
+            ${excerpt ? `<div class="ref-symptom-excerpt">${highlight(excerpt, q)}</div>` : ''}
+          </button>
+        `;
+      },
+      emptyMsg: 'Tapez un symptôme pour rechercher…',
+      showAllWhenEmpty: false,
+    });
+  }
+}
+
+function renderRefSearch({ placeholder, searchFn, renderRow, emptyMsg='Aucun résultat.', showAllWhenEmpty=true }){
+  const content = document.getElementById('refContent');
+  if(!content) return;
+  content.innerHTML = `
+    <div class="ref-search-wrap">
+      <span class="ref-search-icon">🔍</span>
+      <input class="ref-search" id="refInput" type="search" placeholder="${placeholder}" autocomplete="off" value="${escapeHtml(state.ref.query)}">
+      <button class="ref-search-clear ${state.ref.query?'is-visible':''}" id="refClear" type="button">✕ Effacer</button>
+    </div>
+    <div id="refResultCount" class="ref-count"></div>
+    <div class="ref-results" id="refResults"></div>
+  `;
+
+  const input = document.getElementById('refInput');
+  const clearBtn = document.getElementById('refClear');
+
+  function doSearch(){
+    const q = input.value.trim();
+    state.ref.query = q;
+    clearBtn.classList.toggle('is-visible', q.length > 0);
+    const results = searchFn(q);
+    renderResults(results, q);
+  }
+
+  function renderResults(results, q){
+    const countEl = document.getElementById('refResultCount');
+    const grid = document.getElementById('refResults');
+    if(!grid) return;
+    const isEmpty = !q && !showAllWhenEmpty;
+    if(isEmpty){
+      countEl.innerHTML = '';
+      grid.innerHTML = `<div class="ref-empty">${emptyMsg}</div>`;
+      return;
+    }
+    if(results.length === 0){
+      countEl.innerHTML = '';
+      grid.innerHTML = `<div class="ref-empty">${emptyMsg}</div>`;
+      return;
+    }
+    countEl.innerHTML = `${results.length} syndrome${results.length>1?'s':''} trouvé${results.length>1?'s':''}`;
+    grid.innerHTML = results.map(d => renderRow(d, q)).join('');
+    grid.querySelectorAll('.ref-result-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const s = DATA.find(d => d.id === +btn.dataset.id);
+        if(s){ state.ref.selected = s; renderRefFiche(s); }
+      });
+    });
+  }
+
+  input.addEventListener('input', doSearch);
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    state.ref.query = '';
+    clearBtn.classList.remove('is-visible');
+    doSearch();
+  });
+
+  // Initial render
+  doSearch();
+  // focus only on desktop (avoid keyboard popping on mobile)
+  if(window.innerWidth > 760) input.focus();
+}
+
+function renderRefFiche(s){
+  const content = document.getElementById('refContent');
+  if(!content) return;
+  content.innerHTML = `
+    <div class="ref-fiche">
+      <button class="ref-fiche-back" id="refBack" type="button">← Retour aux résultats</button>
+      <div class="summary-eyebrow">${escapeHtml(s.niveau)}</div>
+      <div class="summary-head">
+        <div>
+          <h2 class="summary-name">${escapeHtml(s.nom)}</h2>
+          <div class="summary-cn">${escapeHtml(s.chinois)}</div>
+        </div>
+      </div>
+      <div class="tag-row">
+        <span class="tag">位 ${escapeHtml(s.localisation)}</span>
+        <span class="tag">性 ${escapeHtml(s.nature)}</span>
+        <span class="tag">态 ${escapeHtml(s.etat)}</span>
+      </div>
+      ${fullDetailHtml(s)}
+    </div>
+  `;
+  document.getElementById('refBack').addEventListener('click', () => {
+    state.ref.selected = null;
+    renderRefScreen();
+    // restore search state
+    setTimeout(() => {
+      const inp = document.getElementById('refInput');
+      if(inp && state.ref.query){ inp.value = state.ref.query; inp.dispatchEvent(new Event('input')); }
+    }, 0);
+  });
 }
 
 /* ================== WALL GAME (mur des symptômes) ================== */
