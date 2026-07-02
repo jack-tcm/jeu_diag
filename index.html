@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-P3QL8RJ8N2"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-P3QL8RJ8N2');
 </script>
-
+<!-- Microsoft Clarity -->
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "xcwr7ip0jz");
+</script>
 <meta charset="UTF-8">
 <script>
 (function(){
@@ -80,11 +85,10 @@
   .app{max-width:1080px;margin:0 auto;padding:0 20px 56px;}
 
   /* ---------- THEME TOGGLE ---------- */
+  .theme-toggle-wrap{position:fixed;top:14px;right:18px;z-index:50;display:flex;align-items:center;gap:7px;}
+  .version-badge{font-family:var(--sans);font-size:11px;font-weight:700;color:var(--ink-soft);
+    opacity:.55;letter-spacing:.04em;white-space:nowrap;}
   .theme-toggle{
-    position:fixed;
-    top:14px;
-    right:18px;
-    z-index:50;
     width:36px;height:36px;
     border-radius:50%;
     border:1px solid var(--paper-line);
@@ -329,7 +333,23 @@
   .acu-nested{display:grid;gap:6px;}
   .acu-sub-label{font-family:var(--sans);font-size:12px;color:var(--ink-soft);margin-bottom:3px;}
 
-  /* ---------- WALL HINTS ---------- */
+  /* ---------- VERSION BADGE ---------- */
+  .version-badge{
+    position:fixed;top:18px;right:62px;z-index:50;
+    font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.04em;
+    color:var(--ink-soft);opacity:.55;
+    background:var(--paper-deep);border:1px solid var(--paper-line);
+    padding:5px 9px;border-radius:999px;
+    pointer-events:none;
+  }
+
+  /* ---------- WALL MODE BAR ---------- */
+  .wall-mode-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .wall-mode-label{font-family:var(--sans);font-size:12.5px;color:var(--ink-soft);white-space:nowrap;}
+  .wall-mode-btn{font-family:var(--sans);font-size:13px;font-weight:600;padding:7px 15px;border-radius:999px;
+    border:1.5px solid var(--paper-line);background:var(--paper);color:var(--ink-soft);cursor:pointer;}
+  .wall-mode-btn.is-active{background:var(--jade);border-color:var(--jade-deep);color:#fff;}
+  .wall-mode-btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
   .wall-hints{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;
     padding:12px 16px;border-radius:12px;background:rgba(184,134,43,.07);border:1px solid rgba(184,134,43,.22);}
   .wall-hints-label{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--gold);}
@@ -406,12 +426,16 @@
 </head>
 <body>
 
-<button class="theme-toggle" id="themeToggle" type="button" aria-label="Changer de thème jour/nuit">
-  <span class="yinyang" aria-hidden="true">
-    <span class="yy-dot yy-dot-a"></span>
-    <span class="yy-dot yy-dot-b"></span>
-  </span>
-</button>
+<span class="version-badge" aria-label="Version 4.1">v4.1</span>
+<div class="theme-toggle-wrap">
+  <span class="version-badge">v4.1</span>
+  <button class="theme-toggle" id="themeToggle" type="button" aria-label="Changer de thème jour/nuit">
+    <span class="yinyang" aria-hidden="true">
+      <span class="yy-dot yy-dot-a"></span>
+      <span class="yy-dot yy-dot-b"></span>
+    </span>
+  </button>
+</div>
 
 <div class="app">
 
@@ -461,7 +485,7 @@ let state = {
   current:null, lastId:null, step:0, score:0, answered:false, hintRevealed:false,
   acuType:null, acuCorrect:null,
   totalScore:0, totalQuestions:0, roundsPlayed:0,
-  wall:null, wallRoundsPlayed:0, wallWins:0,
+  wall:null, wallRoundsPlayed:0, wallWins:0, wallSymMode:'all',
 };
 
 const gameRoot = document.getElementById('gameRoot');
@@ -1279,60 +1303,17 @@ function renderRefFiche(s){
 }
 
 /* ================== WALL GAME (mur des symptômes) ================== */
-function normalizeSymptom(s){
-  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,'').trim();
-}
-
-function pickWallPair(pool){
-  if(pool.length < 2) return null;
-  const target = pool[Math.floor(Math.random()*pool.length)];
-  let decoyPool = pool.filter(d => d.id !== target.id);
-  decoyPool.sort((a,b) => {
-    const sa = ['localisation','nature','etat'].reduce((n,f)=>n+(a[f]!==target[f]?1:0),0);
-    const sb = ['localisation','nature','etat'].reduce((n,f)=>n+(b[f]!==target[f]?1:0),0);
-    return sb - sa;
-  });
-  const decoy = decoyPool[0];
-  const targetNorms = new Set(target.symptomes_dict.map(x=>normalizeSymptom(x.s)));
-  const decoyItems = decoy.symptomes_dict.filter(x => !targetNorms.has(normalizeSymptom(x.s)));
-  return {target, decoy, targetItems: target.symptomes_dict, decoyItems};
-}
-
-function goWall(){
-  computePool();
-  if(state.pool.length < 2) return;
-  state.screen = 'wall';
-  gameRoot.innerHTML = `<div id="wallRoot"></div>`;
-  newWallRound();
-}
-
-function newWallRound(){
-  computePool();
-  renderHeaderControls();
-  const pair = pickWallPair(state.pool);
-  const root = document.getElementById('wallRoot');
-  if(!pair){
-    root.innerHTML = `<div class="wall-card"><p>Il faut au moins deux syndromes dans les catégories sélectionnées.</p></div>`;
-    return;
-  }
-  const targetChips = pair.targetItems.map((item,i) => ({id:'t'+i, text:item.s, expl:item.e||'', isCorrect:true, state:null}));
-  const decoyCount = Math.min(pair.decoyItems.length, Math.max(2, Math.floor(targetChips.length * 0.5)));
-  const decoyChips = sample(pair.decoyItems, decoyCount).map((item,i) => ({id:'d'+i, text:item.s, expl:'', isCorrect:false, state:null}));
-  state.wall = {
-    target: pair.target, decoy: pair.decoy,
-    wallItems: shuffle([...targetChips, ...decoyChips]),
-    foundCount:0, triesLeft:5, hintsLeft:3, revealedHints:[],
-    status:'playing',
-  };
-  renderWallPlay();
-}
-
 function renderWallPlay(){
   const w = state.wall;
   const root = document.getElementById('wallRoot');
   const totalTarget = w.wallItems.filter(it => it.isCorrect).length;
   root.innerHTML = `
     <div class="wall-card">
+      <div class="wall-mode-bar">
+        <span class="wall-mode-label">Base de jeu :</span>
+        <button class="wall-mode-btn ${state.wallSymMode==='cles'?'is-active':''}" id="wallModeCles" type="button">Symptômes clés</button>
+        <button class="wall-mode-btn ${state.wallSymMode==='all'?'is-active':''}" id="wallModeAll" type="button">Tous les symptômes</button>
+      </div>
       <div class="wall-banner">
         <div>
           <div class="q-eyebrow" style="margin-bottom:4px">辨 Le mur des symptômes</div>
@@ -1353,6 +1334,14 @@ function renderWallPlay(){
   `;
   renderLives();
   renderHintDots();
+  document.getElementById('wallModeCles').addEventListener('click', () => {
+    if(state.wallSymMode === 'cles') return;
+    state.wallSymMode = 'cles'; newWallRound();
+  });
+  document.getElementById('wallModeAll').addEventListener('click', () => {
+    if(state.wallSymMode === 'all') return;
+    state.wallSymMode = 'all'; newWallRound();
+  });
   const grid = document.getElementById('wallGrid');
   w.wallItems.forEach(item => {
     const btn = document.createElement('button');
@@ -1499,9 +1488,29 @@ function newWallRound(){
   }
   const prevId = state.wall ? state.wall.target.id : null;
   const result = pickWallSyndrome(state.pool, prevId);
-  const targetChips = result.targetItems.map((item,i) => ({id:'t'+i, text:item.s, expl:item.e||'', isCorrect:true, state:null}));
-  const decoyCount = Math.min(result.decoyItems.length, Math.max(2, Math.floor(targetChips.length * 0.6)));
-  const decoyChips = sample(result.decoyItems, decoyCount).map((item,i) => ({id:'d'+i, text:item.s, expl:'', isCorrect:false, state:null}));
+
+  // Build target chips according to mode
+  let sourceItems;
+  if(state.wallSymMode === 'cles'){
+    const clesList = (result.target.cles || '').split(',').map(s => s.trim()).filter(Boolean);
+    sourceItems = clesList.length ? clesList.map(s => ({s, e:''})) : result.targetItems;
+  } else {
+    sourceItems = result.targetItems;
+  }
+
+  // Build decoy chips from other syndromes' same field
+  const targetTexts = new Set(sourceItems.map(it => it.s.toLowerCase().trim()));
+  const decoyPool = [];
+  state.pool.filter(d => d.id !== result.target.id).forEach(d => {
+    const src = state.wallSymMode === 'cles'
+      ? (d.cles||'').split(',').map(s=>({s:s.trim(),e:''})).filter(x=>x.s)
+      : (d.symptomes_dict || []);
+    src.forEach(it => { if(!targetTexts.has(it.s.toLowerCase().trim())) decoyPool.push({s:it.s, e:''}); });
+  });
+
+  const targetChips = sourceItems.map((item,i) => ({id:'t'+i, text:item.s, expl:item.e||'', isCorrect:true, state:null}));
+  const decoyCount = Math.min(decoyPool.length, Math.max(2, Math.floor(targetChips.length * 0.6)));
+  const decoyChips = sample(shuffle(decoyPool), decoyCount).map((item,i) => ({id:'d'+i, text:item.s, expl:'', isCorrect:false, state:null}));
   state.wall = {
     target: result.target,
     wallItems: shuffle([...targetChips, ...decoyChips]),
